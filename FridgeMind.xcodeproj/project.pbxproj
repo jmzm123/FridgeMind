@@ -6,8 +6,15 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		57E72593EEC437F2AB7D9C27 /* Pods_FridgeMind.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 238A962AED3A7FDA07040100 /* Pods_FridgeMind.framework */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
+		238A962AED3A7FDA07040100 /* Pods_FridgeMind.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_FridgeMind.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		3028D14D2F0E557100D8194B /* FridgeMind.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FridgeMind.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		478D652F4024D442C708DE8E /* Pods-FridgeMind.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-FridgeMind.release.xcconfig"; path = "Target Support Files/Pods-FridgeMind/Pods-FridgeMind.release.xcconfig"; sourceTree = "<group>"; };
+		B6EA4E3537D5510AB86E6D88 /* Pods-FridgeMind.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-FridgeMind.debug.xcconfig"; path = "Target Support Files/Pods-FridgeMind/Pods-FridgeMind.debug.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -36,6 +43,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				57E72593EEC437F2AB7D9C27 /* Pods_FridgeMind.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -47,6 +55,8 @@
 			children = (
 				3028D14F2F0E557100D8194B /* FridgeMind */,
 				3028D14E2F0E557100D8194B /* Products */,
+				D062A8DDA124A213882CEE08 /* Pods */,
+				594F5B9B051C532052C30F28 /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -58,6 +68,23 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
+		594F5B9B051C532052C30F28 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				238A962AED3A7FDA07040100 /* Pods_FridgeMind.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		D062A8DDA124A213882CEE08 /* Pods */ = {
+			isa = PBXGroup;
+			children = (
+				B6EA4E3537D5510AB86E6D88 /* Pods-FridgeMind.debug.xcconfig */,
+				478D652F4024D442C708DE8E /* Pods-FridgeMind.release.xcconfig */,
+			);
+			path = Pods;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -65,9 +92,11 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 3028D1652F0E557300D8194B /* Build configuration list for PBXNativeTarget "FridgeMind" */;
 			buildPhases = (
+				23AEDBC64D51ECE1E2CBDC93 /* [CP] Check Pods Manifest.lock */,
 				3028D1492F0E557100D8194B /* Sources */,
 				3028D14A2F0E557100D8194B /* Frameworks */,
 				3028D14B2F0E557100D8194B /* Resources */,
+				AD73722971D32DDD60481712 /* [CP] Embed Pods Frameworks */,
 			);
 			buildRules = (
 			);
@@ -77,8 +106,6 @@
 				3028D14F2F0E557100D8194B /* FridgeMind */,
 			);
 			name = FridgeMind;
-			packageProductDependencies = (
-			);
 			productName = FridgeMind;
 			productReference = 3028D14D2F0E557100D8194B /* FridgeMind.app */;
 			productType = "com.apple.product-type.application";
@@ -126,6 +153,48 @@
 		};
 /* End PBXResourcesBuildPhase section */
 
+/* Begin PBXShellScriptBuildPhase section */
+		23AEDBC64D51ECE1E2CBDC93 /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-FridgeMind-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+		AD73722971D32DDD60481712 /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-FridgeMind/Pods-FridgeMind-frameworks-${CONFIGURATION}-input-files.xcfilelist",
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-FridgeMind/Pods-FridgeMind-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-FridgeMind/Pods-FridgeMind-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+/* End PBXShellScriptBuildPhase section */
+
 /* Begin PBXSourcesBuildPhase section */
 		3028D1492F0E557100D8194B /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
@@ -139,6 +208,7 @@
 /* Begin XCBuildConfiguration section */
 		3028D1662F0E557300D8194B /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = B6EA4E3537D5510AB86E6D88 /* Pods-FridgeMind.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -168,6 +238,7 @@
 		};
 		3028D1672F0E557300D8194B /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 478D652F4024D442C708DE8E /* Pods-FridgeMind.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -233,7 +304,7 @@
 				DEVELOPMENT_TEAM = SE37QF3D46;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
-				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -295,7 +366,7 @@
 				DEVELOPMENT_TEAM = SE37QF3D46;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
-				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
