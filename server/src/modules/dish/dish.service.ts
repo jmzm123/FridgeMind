@@ -1,0 +1,91 @@
+import { query } from '../../config/database';
+import { IngredientService } from '../ingredient/ingredient.service';
+
+interface DishIngredient {
+  name: string;
+  amount: number;
+  unit: string;
+}
+
+export class DishService {
+  static async listByFamily(familyId: string) {
+    const sql = `SELECT * FROM dishes WHERE family_id = $1 ORDER BY created_at DESC`;
+    const res = await query(sql, [familyId]);
+    return res.rows;
+  }
+
+  static async create(familyId: string, name: string, ingredients: DishIngredient[]) {
+    const sql = `
+      INSERT INTO dishes (family_id, name, ingredients)
+      VALUES ($1, $2, $3)
+      RETURNING *
+    `;
+    const res = await query(sql, [familyId, name, JSON.stringify(ingredients)]);
+    return res.rows[0];
+  }
+
+  // 做饭决策辅助
+  static async makeDecision(familyId: string, dishIds: string[]) {
+    // 1. 获取选中的菜品
+    const dishesRes = await query(
+      `SELECT * FROM dishes WHERE id = ANY($1) AND family_id = $2`,
+      [dishIds, familyId]
+    );
+    const dishes = dishesRes.rows;
+
+    // 2. 获取当前库存
+    const inventory = await IngredientService.listByFamily(familyId);
+    
+    // 建立库存索引：Name -> Item[]
+    const stockMap: Record<string, any[]> = {};
+    inventory.forEach(item => {
+      if (!stockMap[item.name]) stockMap[item.name] = [];
+      stockMap[item.name].push(item);
+    });
+
+    const available: any[] = [];
+    const needPreparation: any[] = [];
+
+    // 3. 逐个分析菜品
+    for (const dish of dishes) {
+      let needsDefrost = false;
+      let missing = false;
+
+      const requiredIngredients: DishIngredient[] = dish.ingredients; // JSONB parsed auto? pg usually does
+
+      for (const req of requiredIngredients) {
+        const stockItems = stockMap[req.name];
+        
+        if (!stockItems || stockItems.length === 0) {
+          missing = true; // 缺食材
+          break;
+        }
+
+        // 检查是否有非冷冻的
+        const hasFresh = stockItems.some(item => item.storage_type !== 'frozen');
+        if (!hasFresh) {
+          // 只有冷冻的，需要解冻
+          needsDefrost = true;
+        }
+      }
+
+      if (missing) {
+        // 缺食材暂不推荐，或者放入单独列表 (MVP忽略)
+        continue;
+      }
+
+      if (needsDefrost) {
+        needPreparation.push({
+          dishId: dish.id,
+          name: dish.name,
+          action: 'defrost',
+          reason: 'Only frozen ingredients available'
+        });
+      } else {
+        available.push(dish);
+      }
+    }
+
+    return { available, needPreparation };
+  }
+}
