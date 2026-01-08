@@ -6,6 +6,7 @@
 @property (nonatomic, strong) UITextField *nameField;
 @property (nonatomic, strong) UITextField *quantityField;
 @property (nonatomic, strong) UITextField *unitField;
+@property (nonatomic, strong) UISegmentedControl *storageControl;
 @property (nonatomic, strong) UIDatePicker *datePicker;
 @property (nonatomic, strong) UIButton *cameraButton;
 @end
@@ -23,6 +24,16 @@
         self.nameField.text = self.existingIngredient.name;
         self.quantityField.text = [NSString stringWithFormat:@"%g", self.existingIngredient.quantity];
         self.unitField.text = self.existingIngredient.unit;
+        
+        if (self.existingIngredient.storageType) {
+            if ([self.existingIngredient.storageType isEqualToString:@"frozen"]) {
+                self.storageControl.selectedSegmentIndex = 1;
+            } else if ([self.existingIngredient.storageType isEqualToString:@"pantry"]) {
+                self.storageControl.selectedSegmentIndex = 2;
+            } else {
+                self.storageControl.selectedSegmentIndex = 0;
+            }
+        }
         
         if (self.existingIngredient.expirationDate) {
             NSDateFormatter *f = [[NSDateFormatter alloc] init];
@@ -64,6 +75,11 @@
     // Unit
     self.unitField = [self createTextField:@"单位 (例如: 升, 公斤)"];
     [self.view addSubview:self.unitField];
+    
+    // Storage Type
+    self.storageControl = [[UISegmentedControl alloc] initWithItems:@[@"冷藏", @"冷冻", @"其他"]];
+    self.storageControl.selectedSegmentIndex = 0;
+    [self.view addSubview:self.storageControl];
     
     // Date Picker
     self.datePicker = [[UIDatePicker alloc] init];
@@ -201,13 +217,20 @@
     isoFormatter.dateFormat = @"yyyy-MM-dd";
     NSString *dateStr = [isoFormatter stringFromDate:self.datePicker.date];
     
+    NSString *storageType = @"chilled";
+    if (self.storageControl.selectedSegmentIndex == 1) {
+        storageType = @"frozen";
+    } else if (self.storageControl.selectedSegmentIndex == 2) {
+        storageType = @"pantry";
+    }
+    
     NSDictionary *params = @{
         @"familyId": self.familyId ?: @"",
         @"name": name,
         @"quantity": @(quantity),
         @"unit": unit ?: @"",
         @"expirationDate": dateStr,
-        @"storageType": @"chilled"
+        @"storageType": storageType
     };
     
     if (self.existingIngredient) {

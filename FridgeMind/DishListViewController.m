@@ -33,19 +33,17 @@
 }
 
 - (void)updateNavigationItems {
-    UINavigationItem *navItem = self.tabBarController.navigationItem ?: self.navigationItem;
-    
     if (self.isSelectionMode) {
-        navItem.title = @"选择菜品";
-        navItem.rightBarButtonItems = @[
+        self.navigationItem.title = @"选择菜品";
+        self.navigationItem.rightBarButtonItems = @[
             [[UIBarButtonItem alloc] initWithTitle:@"决定" style:UIBarButtonItemStyleDone target:self action:@selector(decideTapped)],
             [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemCancel target:self action:@selector(cookTapped)]
         ];
     } else {
-        navItem.title = @"菜单";
+        self.navigationItem.title = @"做饭";
         UIBarButtonItem *addItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAdd target:self action:@selector(addTapped)];
         UIBarButtonItem *cookItem = [[UIBarButtonItem alloc] initWithImage:[UIImage systemImageNamed:@"flame"] style:UIBarButtonItemStylePlain target:self action:@selector(cookTapped)];
-        navItem.rightBarButtonItems = @[addItem, cookItem];
+        self.navigationItem.rightBarButtonItems = @[addItem, cookItem];
     }
 }
 
@@ -64,9 +62,9 @@
 }
 
 - (void)loadData {
-    if (!self.familyId) return;
+    if (![NetworkManager sharedManager].currentFamilyId) return;
     
-    [[NetworkManager sharedManager] fetchDishes:self.familyId success:^(id  _Nullable response) {
+    [[NetworkManager sharedManager] fetchDishes:[NetworkManager sharedManager].currentFamilyId success:^(id  _Nullable response) {
         NSArray *data = response;
         if ([response isKindOfClass:[NSArray class]]) {
             self.dishes = [NSArray yy_modelArrayWithClass:[Dish class] json:data];
@@ -81,7 +79,7 @@
 
 - (void)addTapped {
     AddDishViewController *vc = [[AddDishViewController alloc] init];
-    vc.familyId = self.familyId;
+    vc.familyId = [NetworkManager sharedManager].currentFamilyId;
     [self.navigationController pushViewController:vc animated:YES];
 }
 
@@ -113,7 +111,7 @@
     UIAlertController *loading = [UIAlertController alertControllerWithTitle:@"分析中..." message:@"正在检查冰箱..." preferredStyle:UIAlertControllerStyleAlert];
     [self presentViewController:loading animated:YES completion:nil];
     
-    [[NetworkManager sharedManager] makeCookDecision:self.familyId dishIds:ids success:^(id  _Nullable response) {
+    [[NetworkManager sharedManager] makeCookDecision:[NetworkManager sharedManager].currentFamilyId dishIds:ids success:^(id  _Nullable response) {
         [loading dismissViewControllerAnimated:YES completion:^{
             [self showDecisionResult:response];
         }];

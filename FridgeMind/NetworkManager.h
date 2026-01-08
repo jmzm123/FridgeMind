@@ -10,6 +10,10 @@ typedef void(^FailureBlock)(NSError *error);
 + (instancetype)sharedManager;
 
 @property (nonatomic, strong, nullable) NSString *authToken;
+@property (nonatomic, strong, nullable) NSString *currentFamilyId;
+
+- (BOOL)isLoggedIn;
+- (void)logout;
 
 // Auth
 - (void)sendCodeToEmail:(NSString *)email

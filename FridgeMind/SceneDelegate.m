@@ -7,6 +7,12 @@
 
 #import "SceneDelegate.h"
 #import "LoginViewController.h"
+#import "NetworkManager.h"
+#import "FamilyListViewController.h"
+#import "DashboardViewController.h"
+#import "IngredientListViewController.h"
+#import "DishListViewController.h"
+#import "ProfileViewController.h"
 
 @interface SceneDelegate ()
 
@@ -21,10 +27,50 @@
     UIWindowScene *windowScene = (UIWindowScene *)scene;
     self.window = [[UIWindow alloc] initWithWindowScene:windowScene];
     
-    LoginViewController *loginVC = [[LoginViewController alloc] init];
-    self.window.rootViewController = loginVC;
+    if ([[NetworkManager sharedManager] isLoggedIn]) {
+        if ([NetworkManager sharedManager].currentFamilyId) {
+            [self showMainInterface];
+        } else {
+            // Logged in but no family selected -> Go to Family List
+            FamilyListViewController *familyVC = [[FamilyListViewController alloc] init];
+            UINavigationController *nav = [[UINavigationController alloc] initWithRootViewController:familyVC];
+            self.window.rootViewController = nav;
+        }
+    } else {
+        LoginViewController *loginVC = [[LoginViewController alloc] init];
+        self.window.rootViewController = loginVC;
+    }
     
     [self.window makeKeyAndVisible];
+}
+
+- (void)showMainInterface {
+    UITabBarController *tabBarVC = [[UITabBarController alloc] init];
+    
+    // 1. Home (Dashboard)
+    DashboardViewController *homeVC = [[DashboardViewController alloc] init];
+    UINavigationController *homeNav = [[UINavigationController alloc] initWithRootViewController:homeVC];
+    homeNav.tabBarItem = [[UITabBarItem alloc] initWithTitle:@"首页" image:[UIImage systemImageNamed:@"house"] tag:0];
+    
+    // 2. Fridge (IngredientList)
+    IngredientListViewController *fridgeVC = [[IngredientListViewController alloc] init];
+    UINavigationController *fridgeNav = [[UINavigationController alloc] initWithRootViewController:fridgeVC];
+    fridgeNav.tabBarItem = [[UITabBarItem alloc] initWithTitle:@"冰箱" image:[UIImage systemImageNamed:@"snowflake"] tag:1];
+    
+    // 3. Cooking (DishList)
+    DishListViewController *cookingVC = [[DishListViewController alloc] init];
+    UINavigationController *cookingNav = [[UINavigationController alloc] initWithRootViewController:cookingVC];
+    cookingNav.tabBarItem = [[UITabBarItem alloc] initWithTitle:@"做饭" image:[UIImage systemImageNamed:@"flame"] tag:2];
+    
+    // 4. Me (Profile)
+    ProfileViewController *meVC = [[ProfileViewController alloc] init];
+    UINavigationController *meNav = [[UINavigationController alloc] initWithRootViewController:meVC];
+    meNav.tabBarItem = [[UITabBarItem alloc] initWithTitle:@"我的" image:[UIImage systemImageNamed:@"person"] tag:3];
+    
+    tabBarVC.viewControllers = @[homeNav, fridgeNav, cookingNav, meNav];
+    tabBarVC.tabBar.tintColor = [UIColor systemBlueColor]; // Or user preferred color
+    
+    self.window.rootViewController = tabBarVC;
 }
 
 

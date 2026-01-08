@@ -9,6 +9,7 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, copy) NSString *unit;
 @property (nonatomic, copy) NSString *expirationDate;
 @property (nonatomic, copy) NSString *imageUrl;
+@property (nonatomic, copy) NSString *storageType; // frozen, chilled, pantry
 @end
 
 NS_ASSUME_NONNULL_END

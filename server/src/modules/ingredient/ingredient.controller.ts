@@ -15,7 +15,7 @@ export class IngredientController {
   static async create(req: Request, res: Response) {
     try {
       const { familyId } = req.params;
-      const { name, storageType, quantity, unit } = req.body;
+      const { name, storageType, quantity, unit, expirationDate } = req.body;
 
       if (!name || !storageType) {
         return res.status(400).json({ error: 'Name and storageType required' });
@@ -26,7 +26,8 @@ export class IngredientController {
         name,
         storageType,
         quantity: quantity || 1,
-        unit: unit || '个'
+        unit: unit || '个',
+        expirationDate
       });
       res.status(201).json(ingredient);
     } catch (err: any) {

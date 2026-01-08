@@ -10,13 +10,15 @@
 @interface IngredientListViewController () <UITableViewDelegate, UITableViewDataSource, UINavigationControllerDelegate, UIImagePickerControllerDelegate>
 @property (nonatomic, strong) UITableView *tableView;
 @property (nonatomic, strong) NSArray<Ingredient *> *ingredients;
+@property (nonatomic, strong) NSArray<NSString *> *sectionTitles;
+@property (nonatomic, strong) NSDictionary<NSString *, NSArray<Ingredient *> *> *groupedIngredients;
 @end
 
 @implementation IngredientListViewController
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-    self.title = self.familyName ?: @"食材";
+    self.title = self.familyName ?: @"冰箱";
     self.view.backgroundColor = [UIColor whiteColor];
     
     [self setupUI];
@@ -29,8 +31,7 @@
 }
 
 - (void)updateNavigationItems {
-    UINavigationItem *navItem = self.tabBarController.navigationItem ?: self.navigationItem;
-    navItem.title = self.familyName ?: @"食材";
+    self.navigationItem.title = self.familyName ?: @"冰箱";
     
     // Add Item Button (Right Bar Button)
     UIBarButtonItem *addItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAdd target:self action:@selector(addTapped)];
@@ -41,7 +42,7 @@
     // Camera Button
     UIBarButtonItem *cameraItem = [[UIBarButtonItem alloc] initWithImage:[UIImage systemImageNamed:@"camera"] style:UIBarButtonItemStylePlain target:self action:@selector(cameraTapped)];
     
-    navItem.rightBarButtonItems = @[addItem, chefItem, cameraItem];
+    self.navigationItem.rightBarButtonItems = @[addItem, chefItem, cameraItem];
 }
 
 - (void)setupUI {
@@ -173,7 +174,7 @@
             @"unit": item[@"unit"],
             @"expirationDate": @"", // Optional or default
             @"storageType": item[@"storageType"] ?: @"chilled",
-            @"familyId": self.familyId
+            @"familyId": [NetworkManager sharedManager].currentFamilyId
         };
         
         [[NetworkManager sharedManager] addIngredient:params success:^(id  _Nullable response) {
@@ -241,9 +242,9 @@
 }
 
 - (void)loadData {
-    if (!self.familyId) return;
+    if (![NetworkManager sharedManager].currentFamilyId) return;
     
-    [[NetworkManager sharedManager] fetchIngredients:self.familyId success:^(id  _Nullable response) {
+    [[NetworkManager sharedManager] fetchIngredients:[NetworkManager sharedManager].currentFamilyId success:^(id  _Nullable response) {
         NSArray *dataArray = response;
         if ([response isKindOfClass:[NSDictionary class]]) {
             // Check if response has "data" field or is just the array
@@ -256,6 +257,29 @@
         // But let's assume standard array for now.
         if ([dataArray isKindOfClass:[NSArray class]]) {
             self.ingredients = [NSArray yy_modelArrayWithClass:[Ingredient class] json:dataArray];
+            
+            // Group ingredients
+            NSMutableArray *chilled = [NSMutableArray array];
+            NSMutableArray *frozen = [NSMutableArray array];
+            NSMutableArray *others = [NSMutableArray array];
+            
+            for (Ingredient *ing in self.ingredients) {
+                if ([ing.storageType isEqualToString:@"frozen"]) {
+                    [frozen addObject:ing];
+                } else if ([ing.storageType isEqualToString:@"pantry"]) {
+                    [others addObject:ing];
+                } else {
+                    [chilled addObject:ing];
+                }
+            }
+            
+            self.sectionTitles = @[@"冷藏室", @"冷冻室", @"其他"];
+            self.groupedIngredients = @{
+                @"冷藏室": chilled,
+                @"冷冻室": frozen,
+                @"其他": others
+            };
+            
             dispatch_async(dispatch_get_main_queue(), ^{
                 [self.tableView reloadData];
             });
@@ -268,7 +292,7 @@
 - (void)addTapped {
     // Navigate to Add Ingredient VC
     AddIngredientViewController *vc = [[AddIngredientViewController alloc] init];
-    vc.familyId = self.familyId;
+    vc.familyId = [NetworkManager sharedManager].currentFamilyId;
     vc.completionBlock = ^{
         [self loadData];
     };
@@ -277,8 +301,18 @@
 
 #pragma mark - UITableViewDataSource
 
+- (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
+    return self.sectionTitles.count;
+}
+
+- (NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section {
+    return self.sectionTitles[section];
+}
+
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
-    return self.ingredients.count;
+    NSString *sectionTitle = self.sectionTitles[section];
+    NSArray *items = self.groupedIngredients[sectionTitle];
+    return items.count;
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
@@ -288,7 +322,10 @@
         cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:cellId];
     }
     
-    Ingredient *ingredient = self.ingredients[indexPath.row];
+    NSString *sectionTitle = self.sectionTitles[indexPath.section];
+    NSArray *items = self.groupedIngredients[sectionTitle];
+    Ingredient *ingredient = items[indexPath.row];
+    
     cell.textLabel.text = ingredient.name;
     
     // Format subtitle
@@ -315,7 +352,9 @@
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
     [tableView deselectRowAtIndexPath:indexPath animated:YES];
     
-    Ingredient *ingredient = self.ingredients[indexPath.row];
+    NSString *sectionTitle = self.sectionTitles[indexPath.section];
+    NSArray *items = self.groupedIngredients[sectionTitle];
+    Ingredient *ingredient = items[indexPath.row];
     
     AddIngredientViewController *vc = [[AddIngredientViewController alloc] init];
     vc.familyId = self.familyId;

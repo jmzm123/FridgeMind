@@ -4,6 +4,7 @@
 #import "IngredientListViewController.h"
 #import "DishListViewController.h"
 #import "CreateFamilyViewController.h"
+#import "SceneDelegate.h"
 
 @interface FamilyListViewController () <UITableViewDelegate, UITableViewDataSource>
 @property (nonatomic, strong) UITableView *tableView;
@@ -72,26 +73,13 @@
     NSDictionary *family = self.families[indexPath.row];
     
     NSString *familyId = family[@"_id"] ?: family[@"id"];
-    NSString *familyName = family[@"name"];
     
-    // Create TabBarController
-    UITabBarController *tabBarVC = [[UITabBarController alloc] init];
-    tabBarVC.title = familyName;
+    // Save current family ID
+    [[NetworkManager sharedManager] setCurrentFamilyId:familyId];
     
-    // Fridge Tab
-    IngredientListViewController *fridgeVC = [[IngredientListViewController alloc] init];
-    fridgeVC.familyId = familyId;
-    fridgeVC.familyName = familyName;
-    fridgeVC.tabBarItem = [[UITabBarItem alloc] initWithTitle:@"冰箱" image:[UIImage systemImageNamed:@"snow"] tag:0];
-    
-    // Menu Tab
-    DishListViewController *menuVC = [[DishListViewController alloc] init];
-    menuVC.familyId = familyId;
-    menuVC.tabBarItem = [[UITabBarItem alloc] initWithTitle:@"菜单" image:[UIImage systemImageNamed:@"book"] tag:1];
-    
-    tabBarVC.viewControllers = @[fridgeVC, menuVC];
-    
-    [self.navigationController pushViewController:tabBarVC animated:YES];
+    // Switch to Main Interface
+    SceneDelegate *sceneDelegate = (SceneDelegate *)[[UIApplication sharedApplication].connectedScenes.allObjects.firstObject delegate];
+    [sceneDelegate showMainInterface];
 }
 
 @end

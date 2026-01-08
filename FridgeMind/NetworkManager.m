@@ -2,6 +2,8 @@
 #import <AFNetworking/AFNetworking.h>
 
 static NSString * const kBaseURL = @"http://localhost:3000/api/v1";
+static NSString * const kAuthTokenKey = @"kAuthTokenKey";
+static NSString * const kCurrentFamilyIdKey = @"kCurrentFamilyIdKey";
 
 @interface NetworkManager ()
 @property (nonatomic, strong) AFHTTPSessionManager *sessionManager;
@@ -25,8 +27,15 @@ static NSString * const kBaseURL = @"http://localhost:3000/api/v1";
         _sessionManager.requestSerializer = [AFJSONRequestSerializer serializer];
         _sessionManager.requestSerializer.timeoutInterval = 120.0; // Increase timeout for AI calls
         _sessionManager.responseSerializer = [AFJSONResponseSerializer serializer];
-        // 允许非标准 JSON 响应 (可选)
-        // _sessionManager.responseSerializer.acceptableContentTypes = [NSSet setWithObjects:@"application/json", @"text/json", @"text/javascript", @"text/html", nil];
+        
+        // Load stored token
+        NSString *token = [[NSUserDefaults standardUserDefaults] stringForKey:kAuthTokenKey];
+        if (token) {
+            self.authToken = token;
+        }
+        
+        // Load stored familyId
+        self.currentFamilyId = [[NSUserDefaults standardUserDefaults] stringForKey:kCurrentFamilyIdKey];
     }
     return self;
 }
@@ -36,9 +45,31 @@ static NSString * const kBaseURL = @"http://localhost:3000/api/v1";
     if (authToken) {
         NSString *header = [NSString stringWithFormat:@"Bearer %@", authToken];
         [_sessionManager.requestSerializer setValue:header forHTTPHeaderField:@"Authorization"];
+        [[NSUserDefaults standardUserDefaults] setObject:authToken forKey:kAuthTokenKey];
     } else {
         [_sessionManager.requestSerializer setValue:nil forHTTPHeaderField:@"Authorization"];
+        [[NSUserDefaults standardUserDefaults] removeObjectForKey:kAuthTokenKey];
     }
+    [[NSUserDefaults standardUserDefaults] synchronize];
+}
+
+- (void)setCurrentFamilyId:(NSString *)currentFamilyId {
+    _currentFamilyId = currentFamilyId;
+    if (currentFamilyId) {
+        [[NSUserDefaults standardUserDefaults] setObject:currentFamilyId forKey:kCurrentFamilyIdKey];
+    } else {
+        [[NSUserDefaults standardUserDefaults] removeObjectForKey:kCurrentFamilyIdKey];
+    }
+    [[NSUserDefaults standardUserDefaults] synchronize];
+}
+
+- (BOOL)isLoggedIn {
+    return self.authToken.length > 0;
+}
+
+- (void)logout {
+    self.authToken = nil;
+    self.currentFamilyId = nil;
 }
 
 #pragma mark - Auth

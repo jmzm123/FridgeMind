@@ -3,17 +3,36 @@ import { query } from '../../config/database';
 export interface CreateIngredientDTO {
   familyId: string;
   name: string;
-  storageType: 'frozen' | 'chilled' | 'room';
+  storageType: 'frozen' | 'chilled' | 'room' | 'pantry' | 'refrigerated';
   quantity: number;
   unit: string;
+  expirationDate?: string;
 }
 
 export interface UpdateIngredientDTO {
-  storageType?: 'frozen' | 'chilled' | 'room';
+  storageType?: 'frozen' | 'chilled' | 'room' | 'pantry' | 'refrigerated';
   quantity?: number;
   unit?: string;
   name?: string;
+  expirationDate?: string;
 }
+
+const toResponse = (row: any) => {
+  if (!row) return null;
+  return {
+    id: row.id,
+    _id: row.id,
+    familyId: row.family_id,
+    name: row.name,
+    storageType: row.storage_type,
+    quantity: parseFloat(row.quantity),
+    unit: row.unit,
+    expirationDate: row.expire_at,
+    imageUrl: row.image_url,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at
+  };
+};
 
 export class IngredientService {
   // 获取列表 (排除已删除的)
@@ -24,19 +43,25 @@ export class IngredientService {
       ORDER BY expire_at ASC NULLS LAST, created_at DESC
     `;
     const res = await query(sql, [familyId]);
-    return res.rows;
+    return res.rows.map(toResponse);
   }
 
   // 新增食材
   static async create(data: CreateIngredientDTO) {
-    // 简单计算 expire_at (MVP 逻辑: 冷冻90天，冷藏7天，常温30天)
-    // 实际应该由 AI 或更复杂的规则决定，这里先硬编码
-    let expireDays = 30;
-    if (data.storageType === 'frozen') expireDays = 90;
-    if (data.storageType === 'chilled') expireDays = 7;
+    let expireAt;
     
-    const expireAt = new Date();
-    expireAt.setDate(expireAt.getDate() + expireDays);
+    if (data.expirationDate) {
+        expireAt = new Date(data.expirationDate);
+    } else {
+        // 简单计算 expire_at (MVP 逻辑: 冷冻90天，冷藏7天，常温30天)
+        // 实际应该由 AI 或更复杂的规则决定，这里先硬编码
+        let expireDays = 30;
+        if (data.storageType === 'frozen') expireDays = 90;
+        if (data.storageType === 'chilled' || data.storageType === 'refrigerated') expireDays = 7;
+        
+        expireAt = new Date();
+        expireAt.setDate(expireAt.getDate() + expireDays);
+    }
 
     const sql = `
       INSERT INTO ingredients (family_id, name, storage_type, quantity, unit, expire_at)
@@ -52,7 +77,7 @@ export class IngredientService {
       data.unit,
       expireAt
     ]);
-    return res.rows[0];
+    return toResponse(res.rows[0]);
   }
 
   // 更新食材
@@ -66,6 +91,7 @@ export class IngredientService {
     if (data.quantity !== undefined) { fields.push(`quantity = $${idx++}`); values.push(data.quantity); }
     if (data.unit) { fields.push(`unit = $${idx++}`); values.push(data.unit); }
     if (data.storageType) { fields.push(`storage_type = $${idx++}`); values.push(data.storageType); }
+    if (data.expirationDate) { fields.push(`expire_at = $${idx++}`); values.push(new Date(data.expirationDate)); }
 
     if (fields.length === 0) return null;
 
@@ -78,7 +104,7 @@ export class IngredientService {
     `;
     
     const res = await query(sql, values);
-    return res.rows[0];
+    return toResponse(res.rows[0]);
   }
 
   // 软删除

@@ -39,6 +39,7 @@ export class DishService {
     // 建立库存索引：Name -> Item[]
     const stockMap: Record<string, any[]> = {};
     inventory.forEach(item => {
+      if (!item) return;
       if (!stockMap[item.name]) stockMap[item.name] = [];
       stockMap[item.name].push(item);
     });
