@@ -179,7 +179,7 @@
         [[NetworkManager sharedManager] addIngredient:params success:^(id  _Nullable response) {
             dispatch_group_leave(group);
         } failure:^(NSError * _Nonnull error) {
-            [errors appendFormat:@"添加 %@ 失败: %@\n", item[@"name"], error.localizedDescription];
+            [errors appendFormat:@"Failed to add %@: %@\n", item[@"name"], error.localizedDescription];
             dispatch_group_leave(group);
         }];
     }
@@ -196,21 +196,21 @@
 
 - (void)showError:(NSString *)message {
     UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"错误" message:message preferredStyle:UIAlertControllerStyleAlert];
-    [alert addAction:[UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault handler:nil]];
+    [alert addAction:[UIAlertAction actionWithTitle:@"确定" style:UIAlertActionStyleDefault handler:nil]];
     [self presentViewController:alert animated:YES completion:nil];
 }
 
 - (void)showSuccess:(NSString *)message {
     UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"成功" message:message preferredStyle:UIAlertControllerStyleAlert];
-    [alert addAction:[UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault handler:nil]];
+    [alert addAction:[UIAlertAction actionWithTitle:@"确定" style:UIAlertActionStyleDefault handler:nil]];
     [self presentViewController:alert animated:YES completion:nil];
 }
 
 
 - (void)chefTapped {
     if (self.ingredients.count == 0) {
-        UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"Empty Fridge" message:@"Add some ingredients first!" preferredStyle:UIAlertControllerStyleAlert];
-        [alert addAction:[UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault handler:nil]];
+        UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"冰箱空空如也" message:@"先添加一些食材吧！" preferredStyle:UIAlertControllerStyleAlert];
+        [alert addAction:[UIAlertAction actionWithTitle:@"确定" style:UIAlertActionStyleDefault handler:nil]];
         [self presentViewController:alert animated:YES completion:nil];
         return;
     }
@@ -222,7 +222,7 @@
     }
     
     // Show Loading
-    UIAlertController *loading = [UIAlertController alertControllerWithTitle:@"AI Cooking..." message:@"Thinking of a recipe..." preferredStyle:UIAlertControllerStyleAlert];
+    UIAlertController *loading = [UIAlertController alertControllerWithTitle:@"AI大厨..." message:@"正在思考菜谱..." preferredStyle:UIAlertControllerStyleAlert];
     [self presentViewController:loading animated:YES completion:nil];
     
     [[NetworkManager sharedManager] suggestRecipeWithIngredients:names success:^(id  _Nullable response) {
@@ -233,8 +233,8 @@
         }];
     } failure:^(NSError * _Nonnull error) {
         [loading dismissViewControllerAnimated:YES completion:^{
-            UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"Error" message:error.localizedDescription preferredStyle:UIAlertControllerStyleAlert];
-            [alert addAction:[UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault handler:nil]];
+            UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"错误" message:error.localizedDescription preferredStyle:UIAlertControllerStyleAlert];
+            [alert addAction:[UIAlertAction actionWithTitle:@"确定" style:UIAlertActionStyleDefault handler:nil]];
             [self presentViewController:alert animated:YES completion:nil];
         }];
     }];

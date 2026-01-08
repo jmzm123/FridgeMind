@@ -82,12 +82,12 @@
     IngredientListViewController *fridgeVC = [[IngredientListViewController alloc] init];
     fridgeVC.familyId = familyId;
     fridgeVC.familyName = familyName;
-    fridgeVC.tabBarItem = [[UITabBarItem alloc] initWithTitle:@"Fridge" image:[UIImage systemImageNamed:@"snow"] tag:0];
+    fridgeVC.tabBarItem = [[UITabBarItem alloc] initWithTitle:@"冰箱" image:[UIImage systemImageNamed:@"snow"] tag:0];
     
     // Menu Tab
     DishListViewController *menuVC = [[DishListViewController alloc] init];
     menuVC.familyId = familyId;
-    menuVC.tabBarItem = [[UITabBarItem alloc] initWithTitle:@"Menu" image:[UIImage systemImageNamed:@"book"] tag:1];
+    menuVC.tabBarItem = [[UITabBarItem alloc] initWithTitle:@"菜单" image:[UIImage systemImageNamed:@"book"] tag:1];
     
     tabBarVC.viewControllers = @[fridgeVC, menuVC];
     

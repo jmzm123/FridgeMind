@@ -21,7 +21,7 @@
 - (void)setupUI {
     // Email Field
     self.emailField = [[UITextField alloc] init];
-    self.emailField.placeholder = @"Enter Email";
+    self.emailField.placeholder = @"请输入邮箱";
     self.emailField.borderStyle = UITextBorderStyleRoundedRect;
     self.emailField.text = @"test_user@example.com"; // Default for test
     self.emailField.keyboardType = UIKeyboardTypeEmailAddress;
@@ -37,7 +37,7 @@
     
     // Code Field
     self.codeField = [[UITextField alloc] init];
-    self.codeField.placeholder = @"Enter Code";
+    self.codeField.placeholder = @"请输入验证码";
     self.codeField.borderStyle = UITextBorderStyleRoundedRect;
     self.codeField.text = @"123456"; // Default for test
     self.codeField.keyboardType = UIKeyboardTypeNumberPad;
@@ -52,7 +52,7 @@
     
     // Send Code Button
     self.sendCodeButton = [UIButton buttonWithType:UIButtonTypeSystem];
-    [self.sendCodeButton setTitle:@"Send Code" forState:UIControlStateNormal];
+    [self.sendCodeButton setTitle:@"发送验证码" forState:UIControlStateNormal];
     [self.sendCodeButton addTarget:self action:@selector(sendCodeTapped) forControlEvents:UIControlEventTouchUpInside];
     [self.view addSubview:self.sendCodeButton];
     
@@ -65,7 +65,7 @@
     
     // Login Button
     self.loginButton = [UIButton buttonWithType:UIButtonTypeSystem];
-    [self.loginButton setTitle:@"Login" forState:UIControlStateNormal];
+    [self.loginButton setTitle:@"登录" forState:UIControlStateNormal];
     self.loginButton.backgroundColor = [UIColor systemBlueColor];
     [self.loginButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
     self.loginButton.layer.cornerRadius = 8;
@@ -87,13 +87,13 @@
     
     [[NetworkManager sharedManager] sendCodeToEmail:email success:^(id  _Nullable response) {
         NSLog(@"Code sent!");
-        UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"Success" message:@"Code sent to your email" preferredStyle:UIAlertControllerStyleAlert];
-        [alert addAction:[UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault handler:nil]];
+        UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"成功" message:@"验证码已发送到您的邮箱" preferredStyle:UIAlertControllerStyleAlert];
+        [alert addAction:[UIAlertAction actionWithTitle:@"确定" style:UIAlertActionStyleDefault handler:nil]];
         [self presentViewController:alert animated:YES completion:nil];
     } failure:^(NSError * _Nonnull error) {
         NSLog(@"Failed to send code: %@", error);
-        UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"Error" message:error.localizedDescription preferredStyle:UIAlertControllerStyleAlert];
-        [alert addAction:[UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault handler:nil]];
+        UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"错误" message:error.localizedDescription preferredStyle:UIAlertControllerStyleAlert];
+        [alert addAction:[UIAlertAction actionWithTitle:@"确定" style:UIAlertActionStyleDefault handler:nil]];
         [self presentViewController:alert animated:YES completion:nil];
     }];
 }
@@ -126,8 +126,8 @@
         
     } failure:^(NSError * _Nonnull error) {
         NSLog(@"Login Failed: %@", error);
-        UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"Error" message:error.localizedDescription preferredStyle:UIAlertControllerStyleAlert];
-        [alert addAction:[UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault handler:nil]];
+        UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"错误" message:error.localizedDescription preferredStyle:UIAlertControllerStyleAlert];
+        [alert addAction:[UIAlertAction actionWithTitle:@"确定" style:UIAlertActionStyleDefault handler:nil]];
         [self presentViewController:alert animated:YES completion:nil];
     }];
 }

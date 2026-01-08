@@ -14,7 +14,7 @@
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-    self.title = self.existingIngredient ? @"Edit Ingredient" : @"Add Ingredient";
+    self.title = self.existingIngredient ? @"编辑食材" : @"添加食材";
     self.view.backgroundColor = [UIColor whiteColor];
     
     [self setupUI];
@@ -36,7 +36,7 @@
         }
     }
     
-    self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:@"Save" style:UIBarButtonItemStyleDone target:self action:@selector(saveTapped)];
+    self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:@"保存" style:UIBarButtonItemStyleDone target:self action:@selector(saveTapped)];
 }
 
 - (void)setupUI {
@@ -53,16 +53,16 @@
     }];
 
     // Name
-    self.nameField = [self createTextField:@"Name (e.g. Milk)"];
+    self.nameField = [self createTextField:@"名称 (例如: 牛奶)"];
     [self.view addSubview:self.nameField];
     
     // Quantity
-    self.quantityField = [self createTextField:@"Quantity (e.g. 1.5)"];
+    self.quantityField = [self createTextField:@"数量 (例如: 1.5)"];
     self.quantityField.keyboardType = UIKeyboardTypeDecimalPad;
     [self.view addSubview:self.quantityField];
     
     // Unit
-    self.unitField = [self createTextField:@"Unit (e.g. L, kg)"];
+    self.unitField = [self createTextField:@"单位 (例如: 升, 公斤)"];
     [self.view addSubview:self.unitField];
     
     // Date Picker
@@ -105,19 +105,19 @@
 }
 
 - (void)cameraTapped {
-    UIAlertController *actionSheet = [UIAlertController alertControllerWithTitle:@"Select Image Source" message:nil preferredStyle:UIAlertControllerStyleActionSheet];
+    UIAlertController *actionSheet = [UIAlertController alertControllerWithTitle:@"选择图片来源" message:nil preferredStyle:UIAlertControllerStyleActionSheet];
     
     if ([UIImagePickerController isSourceTypeAvailable:UIImagePickerControllerSourceTypeCamera]) {
-        [actionSheet addAction:[UIAlertAction actionWithTitle:@"Camera" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+        [actionSheet addAction:[UIAlertAction actionWithTitle:@"相机" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
             [self showImagePicker:UIImagePickerControllerSourceTypeCamera];
         }]];
     }
     
-    [actionSheet addAction:[UIAlertAction actionWithTitle:@"Photo Library" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+    [actionSheet addAction:[UIAlertAction actionWithTitle:@"相册" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
         [self showImagePicker:UIImagePickerControllerSourceTypePhotoLibrary];
     }]];
     
-    [actionSheet addAction:[UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:nil]];
+    [actionSheet addAction:[UIAlertAction actionWithTitle:@"取消" style:UIAlertActionStyleCancel handler:nil]];
     
     [self presentViewController:actionSheet animated:YES completion:nil];
 }
@@ -145,7 +145,7 @@
     NSString *base64 = [imageData base64EncodedStringWithOptions:0];
     
     // Show Loading
-    UIAlertController *loading = [UIAlertController alertControllerWithTitle:@"Identifying..." message:@"AI is looking at your food..." preferredStyle:UIAlertControllerStyleAlert];
+    UIAlertController *loading = [UIAlertController alertControllerWithTitle:@"识别中..." message:@"AI正在查看你的食材..." preferredStyle:UIAlertControllerStyleAlert];
     [self presentViewController:loading animated:YES completion:nil];
     
     [[NetworkManager sharedManager] identifyIngredientsWithImageBase64:base64 success:^(id  _Nullable response) {
@@ -158,7 +158,7 @@
                 self.quantityField.text = [NSString stringWithFormat:@"%@", item[@"quantity"] ?: @1];
                 self.unitField.text = item[@"unit"];
             } else {
-                [self showError:[NSError errorWithDomain:@"com.fridgemind" code:404 userInfo:@{NSLocalizedDescriptionKey: @"No ingredients identified."}]];
+                [self showError:[NSError errorWithDomain:@"com.fridgemind" code:404 userInfo:@{NSLocalizedDescriptionKey: @"未识别出食材。"}]];
             }
         }];
     } failure:^(NSError * _Nonnull error) {
@@ -232,8 +232,8 @@
 }
 
 - (void)showError:(NSError *)error {
-    UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"Error" message:error.localizedDescription preferredStyle:UIAlertControllerStyleAlert];
-    [alert addAction:[UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault handler:nil]];
+    UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"错误" message:error.localizedDescription preferredStyle:UIAlertControllerStyleAlert];
+    [alert addAction:[UIAlertAction actionWithTitle:@"确定" style:UIAlertActionStyleDefault handler:nil]];
     [self presentViewController:alert animated:YES completion:nil];
 }
 

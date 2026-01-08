@@ -11,7 +11,7 @@
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-    self.title = @"Create Family";
+    self.title = @"创建家庭";
     self.view.backgroundColor = [UIColor whiteColor];
     
     [self setupUI];
@@ -19,12 +19,12 @@
 
 - (void)setupUI {
     self.nameField = [[UITextField alloc] init];
-    self.nameField.placeholder = @"Family Name";
+    self.nameField.placeholder = @"家庭名称";
     self.nameField.borderStyle = UITextBorderStyleRoundedRect;
     [self.view addSubview:self.nameField];
     
     self.createButton = [UIButton buttonWithType:UIButtonTypeSystem];
-    [self.createButton setTitle:@"Create" forState:UIControlStateNormal];
+    [self.createButton setTitle:@"创建" forState:UIControlStateNormal];
     [self.createButton addTarget:self action:@selector(createTapped) forControlEvents:UIControlEventTouchUpInside];
     [self.view addSubview:self.createButton];
     
@@ -53,8 +53,8 @@
         }
         [self.navigationController popViewControllerAnimated:YES];
     } failure:^(NSError * _Nonnull error) {
-        UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"Error" message:error.localizedDescription preferredStyle:UIAlertControllerStyleAlert];
-        [alert addAction:[UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault handler:nil]];
+        UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"错误" message:error.localizedDescription preferredStyle:UIAlertControllerStyleAlert];
+        [alert addAction:[UIAlertAction actionWithTitle:@"确定" style:UIAlertActionStyleDefault handler:nil]];
         [self presentViewController:alert animated:YES completion:nil];
     }];
 }

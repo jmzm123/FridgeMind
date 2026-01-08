@@ -13,7 +13,7 @@
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-    self.title = @"Add Dish";
+    self.title = @"添加菜品";
     self.view.backgroundColor = [UIColor whiteColor];
     self.ingredients = [NSMutableArray array];
     
@@ -36,12 +36,12 @@
 - (void)saveTapped {
     NSString *name = self.nameTextField.text;
     if (name.length == 0) {
-        [self showError:@"Please enter dish name"];
+        [self showError:@"请输入菜品名称"];
         return;
     }
     
     if (self.ingredients.count == 0) {
-        [self showError:@"Please add at least one ingredient"];
+        [self showError:@"请至少添加一种食材"];
         return;
     }
     
@@ -60,7 +60,7 @@
         @"ingredients": ingredientsData
     };
     
-    UIAlertController *loading = [UIAlertController alertControllerWithTitle:@"Saving..." message:nil preferredStyle:UIAlertControllerStyleAlert];
+    UIAlertController *loading = [UIAlertController alertControllerWithTitle:@"保存中..." message:nil preferredStyle:UIAlertControllerStyleAlert];
     [self presentViewController:loading animated:YES completion:nil];
     
     [[NetworkManager sharedManager] createDish:params familyId:self.familyId success:^(id  _Nullable response) {
@@ -75,8 +75,8 @@
 }
 
 - (void)showError:(NSString *)msg {
-    UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"Error" message:msg preferredStyle:UIAlertControllerStyleAlert];
-    [alert addAction:[UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault handler:nil]];
+    UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"错误" message:msg preferredStyle:UIAlertControllerStyleAlert];
+    [alert addAction:[UIAlertAction actionWithTitle:@"确定" style:UIAlertActionStyleDefault handler:nil]];
     [self presentViewController:alert animated:YES completion:nil];
 }
 
@@ -98,8 +98,8 @@
         textField.text = @"chilled";
     }];
     
-    [alert addAction:[UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:nil]];
-    [alert addAction:[UIAlertAction actionWithTitle:@"Add" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+    [alert addAction:[UIAlertAction actionWithTitle:@"取消" style:UIAlertActionStyleCancel handler:nil]];
+    [alert addAction:[UIAlertAction actionWithTitle:@"添加" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
         NSString *name = alert.textFields[0].text;
         NSString *qtyStr = alert.textFields[1].text;
         NSString *unit = alert.textFields[2].text;
@@ -133,7 +133,7 @@
 
 - (NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section {
     if (section == 0) return @"Dish Info";
-    return @"Ingredients";
+    return @"食材";
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
@@ -142,7 +142,7 @@
         if (!cell) {
             cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"NameCell"];
             self.nameTextField = [[UITextField alloc] init];
-            self.nameTextField.placeholder = @"Dish Name";
+            self.nameTextField.placeholder = @"菜品名称";
             self.nameTextField.delegate = self;
             [cell.contentView addSubview:self.nameTextField];
             [self.nameTextField mas_makeConstraints:^(MASConstraintMaker *make) {
@@ -159,7 +159,7 @@
                 cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"AddCell"];
                 cell.textLabel.textColor = [UIColor systemBlueColor];
                 cell.textLabel.textAlignment = NSTextAlignmentCenter;
-                cell.textLabel.text = @"Add Ingredient";
+                cell.textLabel.text = @"添加食材";
             }
             return cell;
         } else {

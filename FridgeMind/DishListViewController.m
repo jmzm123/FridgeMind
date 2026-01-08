@@ -16,7 +16,7 @@
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-    self.title = @"Menu";
+    self.title = @"菜单";
     self.view.backgroundColor = [UIColor whiteColor];
     self.selectedDishIds = [NSMutableArray array];
     
@@ -36,13 +36,13 @@
     UINavigationItem *navItem = self.tabBarController.navigationItem ?: self.navigationItem;
     
     if (self.isSelectionMode) {
-        navItem.title = @"Select Dishes";
+        navItem.title = @"选择菜品";
         navItem.rightBarButtonItems = @[
-            [[UIBarButtonItem alloc] initWithTitle:@"Decide" style:UIBarButtonItemStyleDone target:self action:@selector(decideTapped)],
+            [[UIBarButtonItem alloc] initWithTitle:@"决定" style:UIBarButtonItemStyleDone target:self action:@selector(decideTapped)],
             [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemCancel target:self action:@selector(cookTapped)]
         ];
     } else {
-        navItem.title = @"Menu";
+        navItem.title = @"菜单";
         UIBarButtonItem *addItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAdd target:self action:@selector(addTapped)];
         UIBarButtonItem *cookItem = [[UIBarButtonItem alloc] initWithImage:[UIImage systemImageNamed:@"flame"] style:UIBarButtonItemStylePlain target:self action:@selector(cookTapped)];
         navItem.rightBarButtonItems = @[addItem, cookItem];
@@ -99,7 +99,7 @@
 - (void)decideTapped {
     NSArray *selectedRows = [self.tableView indexPathsForSelectedRows];
     if (selectedRows.count == 0) {
-        [self showError:@"Select at least one dish!"];
+        [self showError:@"请至少选择一道菜！"];
         return;
     }
     
@@ -110,7 +110,7 @@
     }
     
     // Call API
-    UIAlertController *loading = [UIAlertController alertControllerWithTitle:@"Analyzing..." message:@"Checking your fridge..." preferredStyle:UIAlertControllerStyleAlert];
+    UIAlertController *loading = [UIAlertController alertControllerWithTitle:@"分析中..." message:@"正在检查冰箱..." preferredStyle:UIAlertControllerStyleAlert];
     [self presentViewController:loading animated:YES completion:nil];
     
     [[NetworkManager sharedManager] makeCookDecision:self.familyId dishIds:ids success:^(id  _Nullable response) {
@@ -131,7 +131,7 @@
     NSMutableString *msg = [NSMutableString string];
     
     if (available.count > 0) {
-        [msg appendString:@"✅ Ready to Cook:\n"];
+        [msg appendString:@"✅ 可以做：\n"];
         for (NSDictionary *d in available) {
             [msg appendFormat:@"- %@\n", d[@"name"]];
         }
@@ -139,26 +139,26 @@
     }
     
     if (needPrep.count > 0) {
-        [msg appendString:@"❄️ Needs Defrost/Prep:\n"];
+        [msg appendString:@"❄️ 需要解冻/准备：\n"];
         for (NSDictionary *d in needPrep) {
             [msg appendFormat:@"- %@ (%@)\n", d[@"name"], d[@"action"]];
         }
     }
     
     if (available.count == 0 && needPrep.count == 0) {
-        [msg appendString:@"❌ Missing ingredients for all selected dishes."];
+        [msg appendString:@"❌ 所选菜品缺少食材。"];
     }
     
-    UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"Decision" message:msg preferredStyle:UIAlertControllerStyleAlert];
-    [alert addAction:[UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+    UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"决策结果" message:msg preferredStyle:UIAlertControllerStyleAlert];
+    [alert addAction:[UIAlertAction actionWithTitle:@"确定" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
         [self cookTapped]; // Exit selection mode
     }]];
     [self presentViewController:alert animated:YES completion:nil];
 }
 
 - (void)showError:(NSString *)msg {
-    UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"Error" message:msg preferredStyle:UIAlertControllerStyleAlert];
-    [alert addAction:[UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault handler:nil]];
+    UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"错误" message:msg preferredStyle:UIAlertControllerStyleAlert];
+    [alert addAction:[UIAlertAction actionWithTitle:@"确定" style:UIAlertActionStyleDefault handler:nil]];
     [self presentViewController:alert animated:YES completion:nil];
 }
 
@@ -177,7 +177,7 @@
     
     Dish *dish = self.dishes[indexPath.row];
     cell.textLabel.text = dish.name;
-    cell.detailTextLabel.text = [NSString stringWithFormat:@"%lu ingredients", (unsigned long)dish.ingredients.count];
+    cell.detailTextLabel.text = [NSString stringWithFormat:@"%lu 种食材", (unsigned long)dish.ingredients.count];
     
     return cell;
 }

@@ -11,7 +11,7 @@
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-    self.title = self.recipeData[@"name"] ?: @"Suggested Recipe";
+    self.title = self.recipeData[@"name"] ?: @"推荐食谱";
     self.view.backgroundColor = [UIColor whiteColor];
     
     self.steps = self.recipeData[@"steps"] ?: @[];
@@ -65,8 +65,8 @@
 }
 
 - (NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section {
-    if (section == 0) return self.missingIngredients.count > 0 ? @"Missing Ingredients" : nil;
-    return @"Steps";
+    if (section == 0) return self.missingIngredients.count > 0 ? @"缺少食材" : nil;
+    return @"步骤";
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
