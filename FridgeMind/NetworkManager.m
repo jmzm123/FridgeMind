@@ -210,10 +210,40 @@ static NSString * const kCurrentFamilyIdKey = @"kCurrentFamilyIdKey";
     }];
 }
 
+- (void)fetchDish:(NSString *)dishId familyId:(NSString *)familyId success:(SuccessBlock)success failure:(FailureBlock)failure {
+    // GET /api/v1/families/:familyId/dishes/:id
+    NSString *url = [NSString stringWithFormat:@"families/%@/dishes/%@", familyId, dishId];
+    [_sessionManager GET:url parameters:nil headers:nil progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+        if (success) success(responseObject);
+    } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
+        if (failure) failure(error);
+    }];
+}
+
 - (void)createDish:(NSDictionary *)params familyId:(NSString *)familyId success:(SuccessBlock)success failure:(FailureBlock)failure {
     // POST /api/v1/families/:familyId/dishes
     NSString *url = [NSString stringWithFormat:@"families/%@/dishes", familyId];
     [_sessionManager POST:url parameters:params headers:nil progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+        if (success) success(responseObject);
+    } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
+        if (failure) failure(error);
+    }];
+}
+
+- (void)updateDish:(NSString *)dishId familyId:(NSString *)familyId params:(NSDictionary *)params success:(SuccessBlock)success failure:(FailureBlock)failure {
+    // PUT /api/v1/families/:familyId/dishes/:id
+    NSString *url = [NSString stringWithFormat:@"families/%@/dishes/%@", familyId, dishId];
+    [_sessionManager PUT:url parameters:params headers:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+        if (success) success(responseObject);
+    } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
+        if (failure) failure(error);
+    }];
+}
+
+- (void)deleteDish:(NSString *)dishId familyId:(NSString *)familyId success:(SuccessBlock)success failure:(FailureBlock)failure {
+    // DELETE /api/v1/families/:familyId/dishes/:id
+    NSString *url = [NSString stringWithFormat:@"families/%@/dishes/%@", familyId, dishId];
+    [_sessionManager DELETE:url parameters:nil headers:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
         if (success) success(responseObject);
     } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
         if (failure) failure(error);

@@ -55,7 +55,13 @@ typedef void(^FailureBlock)(NSError *error);
 
 - (void)fetchDishes:(NSString *)familyId success:(SuccessBlock)success failure:(FailureBlock)failure;
 
+- (void)fetchDish:(NSString *)dishId familyId:(NSString *)familyId success:(SuccessBlock)success failure:(FailureBlock)failure;
+
 - (void)createDish:(NSDictionary *)params familyId:(NSString *)familyId success:(SuccessBlock)success failure:(FailureBlock)failure;
+
+- (void)updateDish:(NSString *)dishId familyId:(NSString *)familyId params:(NSDictionary *)params success:(SuccessBlock)success failure:(FailureBlock)failure;
+
+- (void)deleteDish:(NSString *)dishId familyId:(NSString *)familyId success:(SuccessBlock)success failure:(FailureBlock)failure;
 
 - (void)makeCookDecision:(NSString *)familyId dishIds:(NSArray *)dishIds success:(SuccessBlock)success failure:(FailureBlock)failure;
 

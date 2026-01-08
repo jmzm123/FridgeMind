@@ -3,7 +3,7 @@ import { IngredientService } from '../ingredient/ingredient.service';
 
 interface DishIngredient {
   name: string;
-  quantity: number;
+  quantity: string | number;
   unit: string;
 }
 
@@ -12,6 +12,12 @@ export class DishService {
     const sql = `SELECT * FROM dishes WHERE family_id = $1 ORDER BY created_at DESC`;
     const res = await query(sql, [familyId]);
     return res.rows;
+  }
+
+  static async get(id: string, familyId: string) {
+    const sql = `SELECT * FROM dishes WHERE id = $1 AND family_id = $2`;
+    const res = await query(sql, [id, familyId]);
+    return res.rows[0];
   }
 
   static async create(familyId: string, name: string, ingredients: DishIngredient[], steps: string[] = [], description: string = '', cookingMethod: string = '') {

@@ -10,7 +10,9 @@
     return @{
         @"dishId" : @[@"id", @"_id"],
         @"familyId" : @"family_id",
-        @"createdAt" : @"created_at"
+        @"createdAt" : @"created_at",
+        @"desc" : @"description",
+        @"cookingMethod" : @"cooking_method"
     };
 }
 

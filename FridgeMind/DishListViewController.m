@@ -5,6 +5,7 @@
 #import <YYModel/YYModel.h>
 #import "AddDishViewController.h"
 #import "CookingViewController.h"
+#import "DishDetailViewController.h"
 
 @interface DishListViewController () <UITableViewDelegate, UITableViewDataSource>
 @property (nonatomic, strong) UITableView *tableView;
@@ -201,7 +202,12 @@
         return;
     }
     [tableView deselectRowAtIndexPath:indexPath animated:YES];
-    // Show details or edit (future work)
+    
+    Dish *dish = self.dishes[indexPath.row];
+    DishDetailViewController *vc = [[DishDetailViewController alloc] init];
+    vc.dish = dish;
+    vc.hidesBottomBarWhenPushed = YES;
+    [self.navigationController pushViewController:vc animated:YES];
 }
 
 @end
