@@ -54,6 +54,9 @@ CREATE TABLE IF NOT EXISTS dishes (
   family_id UUID NOT NULL REFERENCES families(id) ON DELETE CASCADE,
   name TEXT NOT NULL,
   ingredients JSONB NOT NULL DEFAULT '[]',
+  steps JSONB DEFAULT '[]',
+  description TEXT,
+  cooking_method TEXT,
   is_builtin BOOLEAN NOT NULL DEFAULT FALSE,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );

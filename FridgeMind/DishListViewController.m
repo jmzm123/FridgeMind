@@ -4,6 +4,7 @@
 #import <Masonry/Masonry.h>
 #import <YYModel/YYModel.h>
 #import "AddDishViewController.h"
+#import "CookingViewController.h"
 
 @interface DishListViewController () <UITableViewDelegate, UITableViewDataSource>
 @property (nonatomic, strong) UITableView *tableView;
@@ -78,9 +79,24 @@
 }
 
 - (void)addTapped {
-    AddDishViewController *vc = [[AddDishViewController alloc] init];
-    vc.familyId = [NetworkManager sharedManager].currentFamilyId;
-    [self.navigationController pushViewController:vc animated:YES];
+    UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"添加菜谱" message:nil preferredStyle:UIAlertControllerStyleActionSheet];
+    
+    [alert addAction:[UIAlertAction actionWithTitle:@"AI 智能推荐" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+        CookingViewController *vc = [[CookingViewController alloc] init];
+        vc.hidesBottomBarWhenPushed = YES;
+        [self.navigationController pushViewController:vc animated:YES];
+    }]];
+    
+    [alert addAction:[UIAlertAction actionWithTitle:@"手动添加" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+        AddDishViewController *vc = [[AddDishViewController alloc] init];
+        vc.familyId = [NetworkManager sharedManager].currentFamilyId;
+        vc.hidesBottomBarWhenPushed = YES;
+        [self.navigationController pushViewController:vc animated:YES];
+    }]];
+    
+    [alert addAction:[UIAlertAction actionWithTitle:@"取消" style:UIAlertActionStyleCancel handler:nil]];
+    
+    [self presentViewController:alert animated:YES completion:nil];
 }
 
 - (void)cookTapped {

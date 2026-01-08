@@ -16,6 +16,9 @@ target 'FridgeMind' do
   # Image Loading
   pod 'SDWebImage'
 
+  # Progress HUD
+  pod 'SVProgressHUD'
+
 end
 
 post_install do |installer|

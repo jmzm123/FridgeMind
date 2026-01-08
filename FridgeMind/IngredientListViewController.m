@@ -226,7 +226,7 @@
     UIAlertController *loading = [UIAlertController alertControllerWithTitle:@"AI大厨..." message:@"正在思考菜谱..." preferredStyle:UIAlertControllerStyleAlert];
     [self presentViewController:loading animated:YES completion:nil];
     
-    [[NetworkManager sharedManager] suggestRecipeWithIngredients:names success:^(id  _Nullable response) {
+    [[NetworkManager sharedManager] suggestRecipeWithIngredients:names cookingMethod:nil success:^(id  _Nullable response) {
         [loading dismissViewControllerAnimated:YES completion:^{
             RecipeSuggestionViewController *vc = [[RecipeSuggestionViewController alloc] init];
             vc.recipeData = response;

@@ -18,12 +18,16 @@ PODS:
   - SDWebImage (5.21.5):
     - SDWebImage/Core (= 5.21.5)
   - SDWebImage/Core (5.21.5)
+  - SVProgressHUD (2.3.1):
+    - SVProgressHUD/Core (= 2.3.1)
+  - SVProgressHUD/Core (2.3.1)
   - YYModel (1.0.4)
 
 DEPENDENCIES:
   - AFNetworking
   - Masonry
   - SDWebImage
+  - SVProgressHUD
   - YYModel
 
 SPEC REPOS:
@@ -31,14 +35,16 @@ SPEC REPOS:
     - AFNetworking
     - Masonry
     - SDWebImage
+    - SVProgressHUD
     - YYModel
 
 SPEC CHECKSUMS:
   AFNetworking: 3bd23d814e976cd148d7d44c3ab78017b744cd58
   Masonry: 678fab65091a9290e40e2832a55e7ab731aad201
   SDWebImage: e9c98383c7572d713c1a0d7dd2783b10599b9838
+  SVProgressHUD: 4837c74bdfe2e51e8821c397825996a8d7de6e22
   YYModel: 2a7fdd96aaa4b86a824e26d0c517de8928c04b30
 
-PODFILE CHECKSUM: a08ae087bdadc3f0918e57636564b65082f5a85e
+PODFILE CHECKSUM: 4d5f42356bdbce8368eda4b33a25536d286dd715
 
 COCOAPODS: 1.16.2

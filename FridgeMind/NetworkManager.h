@@ -47,7 +47,7 @@ typedef void(^FailureBlock)(NSError *error);
 
 #pragma mark - AI
 
-- (void)suggestRecipeWithIngredients:(NSArray<NSString *> *)ingredients success:(SuccessBlock)success failure:(FailureBlock)failure;
+- (void)suggestRecipeWithIngredients:(NSArray<NSString *> *)ingredients cookingMethod:(NSString *)method success:(SuccessBlock)success failure:(FailureBlock)failure;
 
 - (void)identifyIngredientsWithImageBase64:(NSString *)imageBase64 success:(SuccessBlock)success failure:(FailureBlock)failure;
 

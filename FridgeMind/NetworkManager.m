@@ -174,8 +174,11 @@ static NSString * const kCurrentFamilyIdKey = @"kCurrentFamilyIdKey";
 
 #pragma mark - AI
 
-- (void)suggestRecipeWithIngredients:(NSArray<NSString *> *)ingredients success:(SuccessBlock)success failure:(FailureBlock)failure {
-    NSDictionary *params = @{@"ingredients": ingredients};
+- (void)suggestRecipeWithIngredients:(NSArray<NSString *> *)ingredients cookingMethod:(NSString *)method success:(SuccessBlock)success failure:(FailureBlock)failure {
+    NSDictionary *params = @{
+        @"ingredients": ingredients,
+        @"cookingMethod": method ?: @"炒菜"
+    };
     [_sessionManager POST:@"ai/suggest-recipe" parameters:params headers:nil progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
         if (success) success(responseObject);
     } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {

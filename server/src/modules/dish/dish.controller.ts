@@ -15,11 +15,18 @@ export class DishController {
   static async create(req: Request, res: Response) {
     try {
       const { familyId } = req.params;
-      const { name, ingredients } = req.body;
+      const { name, ingredients, steps, description, cookingMethod } = req.body;
 
       if (!name) return res.status(400).json({ error: 'Name required' });
 
-      const dish = await DishService.create(familyId, name, ingredients || []);
+      const dish = await DishService.create(
+        familyId, 
+        name, 
+        ingredients || [], 
+        steps || [], 
+        description || '', 
+        cookingMethod || ''
+      );
       res.status(201).json(dish);
     } catch (err: any) {
       res.status(500).json({ error: err.message });

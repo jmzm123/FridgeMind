@@ -50,19 +50,30 @@ export class AIService {
   /**
    * 根据食材建议菜谱
    * @param ingredients 食材名称列表
+   * @param cookingMethod 烹饪方式 (可选，默认炒菜)
    */
-  static async suggestRecipe(ingredients: string[]): Promise<any> {
+  static async suggestRecipe(ingredients: string[], cookingMethod: string = '炒菜'): Promise<any> {
     try {
       const response = await this.client.chat.completions.create({
         model: "qwen-plus",
         messages: [
           {
             role: "system",
-            content: "你是一个专业的厨师助手。请根据用户提供的食材，推荐一道最合适的菜谱。请只返回一个JSON对象，格式为：{ \"name\": \"菜名\", \"description\": \"简介\", \"steps\": [\"步骤1\", \"步骤2\"], \"missingIngredients\": [\"缺失食材1\"] }。请不要返回任何Markdown格式，只返回纯JSON字符串。"
+            content: `你是一个专业的厨师助手。请根据用户提供的食材和烹饪方式，推荐一道最合适的菜谱。
+            请只返回一个JSON对象，格式为：
+            { 
+              "name": "菜名", 
+              "description": "简介", 
+              "cookingMethod": "烹饪方式",
+               "ingredients": [{ "name": "食材名", "quantity": 1, "unit": "个" }],
+               "steps": ["步骤1", "步骤2"], 
+               "missingIngredients": ["缺失食材1"] 
+             }。
+             请不要返回任何Markdown格式，只返回纯JSON字符串。`
           },
           {
             role: "user",
-            content: `我有以下食材：${ingredients.join(', ')}。请推荐一道菜。`
+            content: `我有以下食材：${ingredients.join(', ')}。我想做：${cookingMethod}。请推荐一道菜并给出详细教程。请确保ingredients中的quantity是数字，unit是单位字符串。`
           }
         ]
       });

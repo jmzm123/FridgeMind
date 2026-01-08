@@ -3,7 +3,7 @@ import { IngredientService } from '../ingredient/ingredient.service';
 
 interface DishIngredient {
   name: string;
-  amount: number;
+  quantity: number;
   unit: string;
 }
 
@@ -14,13 +14,20 @@ export class DishService {
     return res.rows;
   }
 
-  static async create(familyId: string, name: string, ingredients: DishIngredient[]) {
+  static async create(familyId: string, name: string, ingredients: DishIngredient[], steps: string[] = [], description: string = '', cookingMethod: string = '') {
     const sql = `
-      INSERT INTO dishes (family_id, name, ingredients)
-      VALUES ($1, $2, $3)
+      INSERT INTO dishes (family_id, name, ingredients, steps, description, cooking_method)
+      VALUES ($1, $2, $3, $4, $5, $6)
       RETURNING *
     `;
-    const res = await query(sql, [familyId, name, JSON.stringify(ingredients)]);
+    const res = await query(sql, [
+      familyId, 
+      name, 
+      JSON.stringify(ingredients),
+      JSON.stringify(steps),
+      description,
+      cookingMethod
+    ]);
     return res.rows[0];
   }
 
