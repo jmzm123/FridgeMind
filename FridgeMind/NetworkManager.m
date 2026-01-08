@@ -23,6 +23,7 @@ static NSString * const kBaseURL = @"http://localhost:3000/api/v1";
     if (self) {
         _sessionManager = [[AFHTTPSessionManager alloc] initWithBaseURL:[NSURL URLWithString:kBaseURL]];
         _sessionManager.requestSerializer = [AFJSONRequestSerializer serializer];
+        _sessionManager.requestSerializer.timeoutInterval = 120.0; // Increase timeout for AI calls
         _sessionManager.responseSerializer = [AFJSONResponseSerializer serializer];
         // 允许非标准 JSON 响应 (可选)
         // _sessionManager.responseSerializer.acceptableContentTypes = [NSSet setWithObjects:@"application/json", @"text/json", @"text/javascript", @"text/html", nil];
@@ -84,7 +85,7 @@ static NSString * const kBaseURL = @"http://localhost:3000/api/v1";
 }
 
 - (void)fetchIngredients:(NSString *)familyId success:(SuccessBlock)success failure:(FailureBlock)failure {
-    NSString *url = [NSString stringWithFormat:@"ingredient?familyId=%@", familyId];
+    NSString *url = [NSString stringWithFormat:@"families/%@/ingredients", familyId];
     [_sessionManager GET:url parameters:nil headers:nil progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
         if (success) success(responseObject);
     } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
@@ -93,7 +94,61 @@ static NSString * const kBaseURL = @"http://localhost:3000/api/v1";
 }
 
 - (void)addIngredient:(NSDictionary *)params success:(SuccessBlock)success failure:(FailureBlock)failure {
-    [_sessionManager POST:@"ingredient" parameters:params headers:nil progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+    NSString *familyId = params[@"familyId"];
+    if (!familyId) {
+        // Fallback or error handling if familyId is missing
+        if (failure) failure([NSError errorWithDomain:@"com.fridgemind" code:400 userInfo:@{NSLocalizedDescriptionKey: @"Missing familyId"}]);
+        return;
+    }
+    
+    NSMutableDictionary *bodyParams = [params mutableCopy];
+    [bodyParams removeObjectForKey:@"familyId"]; // Clean up body
+    
+    NSString *url = [NSString stringWithFormat:@"families/%@/ingredients", familyId];
+    
+    [_sessionManager POST:url parameters:bodyParams headers:nil progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+        if (success) success(responseObject);
+    } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
+        if (failure) failure(error);
+    }];
+}
+
+- (void)updateIngredient:(NSString *)ingredientId
+                familyId:(NSString *)familyId
+                  params:(NSDictionary *)params
+                 success:(SuccessBlock)success
+                 failure:(FailureBlock)failure {
+    // Backend route is /api/v1/ingredients/:id
+    NSString *url = [NSString stringWithFormat:@"ingredients/%@", ingredientId];
+    
+    NSMutableDictionary *bodyParams = [params mutableCopy];
+    [bodyParams removeObjectForKey:@"familyId"];
+    
+    [_sessionManager PUT:url parameters:bodyParams headers:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+        if (success) success(responseObject);
+    } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
+        NSLog(@"Update failed: %@", error);
+        if (failure) failure(error);
+    }];
+}
+
+#pragma mark - AI
+
+- (void)suggestRecipeWithIngredients:(NSArray<NSString *> *)ingredients success:(SuccessBlock)success failure:(FailureBlock)failure {
+    NSDictionary *params = @{@"ingredients": ingredients};
+    [_sessionManager POST:@"ai/suggest-recipe" parameters:params headers:nil progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+        if (success) success(responseObject);
+    } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
+        if (failure) failure(error);
+    }];
+}
+
+- (void)identifyIngredientsWithImageBase64:(NSString *)imageBase64 success:(SuccessBlock)success failure:(FailureBlock)failure {
+    // Backend expects full Data URI scheme
+    NSString *dataURI = [NSString stringWithFormat:@"data:image/jpeg;base64,%@", imageBase64];
+    NSDictionary *params = @{@"imageUrl": dataURI};
+    
+    [_sessionManager POST:@"ai/identify-ingredients" parameters:params headers:nil progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
         if (success) success(responseObject);
     } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
         if (failure) failure(error);

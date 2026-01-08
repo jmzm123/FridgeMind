@@ -1,0 +1,11 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const dish_controller_1 = require("./dish.controller");
+const auth_middleware_1 = require("../../middlewares/auth.middleware");
+const router = (0, express_1.Router)({ mergeParams: true });
+router.use(auth_middleware_1.requireAuth);
+router.get('/', dish_controller_1.DishController.list);
+router.post('/', dish_controller_1.DishController.create);
+router.post('/cook-decision', dish_controller_1.DishController.decide);
+exports.default = router;

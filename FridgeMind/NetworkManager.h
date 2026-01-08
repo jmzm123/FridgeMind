@@ -31,6 +31,17 @@ typedef void(^FailureBlock)(NSError *error);
 
 - (void)fetchIngredients:(NSString *)familyId success:(SuccessBlock)success failure:(FailureBlock)failure;
 - (void)addIngredient:(NSDictionary *)params success:(SuccessBlock)success failure:(FailureBlock)failure;
+- (void)updateIngredient:(NSString *)ingredientId
+                familyId:(NSString *)familyId
+                  params:(NSDictionary *)params
+                 success:(SuccessBlock)success
+                 failure:(FailureBlock)failure;
+
+#pragma mark - AI
+
+- (void)suggestRecipeWithIngredients:(NSArray<NSString *> *)ingredients success:(SuccessBlock)success failure:(FailureBlock)failure;
+
+- (void)identifyIngredientsWithImageBase64:(NSString *)imageBase64 success:(SuccessBlock)success failure:(FailureBlock)failure;
 
 @end
 

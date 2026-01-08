@@ -10,6 +10,9 @@ export class AIController {
         return res.status(400).json({ error: 'imageUrl is required' });
       }
       
+      console.log('Received identify request. Image URL length:', imageUrl.length);
+      console.log('Image URL prefix:', imageUrl.substring(0, 50));
+      
       const result = await AIService.identifyIngredients(imageUrl);
       res.json(result);
     } catch (error: any) {

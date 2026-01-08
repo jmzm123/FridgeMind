@@ -30,7 +30,7 @@ export class AIService {
               },
               {
                 type: "text",
-                text: "请识别图中的食材。请只返回一个JSON数组，格式为：[{ \"name\": \"食材名称\", \"quantity\": 数量(数字), \"unit\": \"单位\", \"storageType\": \"refrigerated\" | \"frozen\" | \"room_temp\" }]. 如果无法确定数量，默认为1。如果无法确定单位，默认为'个'或'份'。请不要返回任何Markdown格式或额外文字，只返回纯JSON字符串。"
+                text: "请识别图中的食材。请只返回一个JSON数组，格式为：[{ \"name\": \"食材名称\", \"quantity\": 数量(数字), \"unit\": \"单位\", \"storageType\": \"chilled\" | \"frozen\" | \"room\" }]. 如果无法确定数量，默认为1。如果无法确定单位，默认为'个'或'份'。请不要返回任何Markdown格式或额外文字，只返回纯JSON字符串。"
               }
             ]
           }
