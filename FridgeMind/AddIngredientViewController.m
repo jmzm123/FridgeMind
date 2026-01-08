@@ -1,6 +1,9 @@
 #import "AddIngredientViewController.h"
 #import <Masonry/Masonry.h>
 #import "NetworkManager.h"
+#import "DBManager.h"
+#import "SyncManager.h"
+#import "Ingredient.h"
 
 @interface AddIngredientViewController () <UINavigationControllerDelegate, UIImagePickerControllerDelegate>
 @property (nonatomic, strong) UITextField *nameField;
@@ -278,35 +281,28 @@
         storageType = @"pantry";
     }
     
-    NSDictionary *params = @{
-        @"familyId": self.familyId ?: @"",
-        @"name": name,
-        @"quantity": @(quantity),
-        @"unit": unit ?: @"",
-        @"expirationDate": expireStr,
-        @"createdAt": createStr,
-        @"storageType": storageType
-    };
+    Ingredient *ing = self.existingIngredient ?: [[Ingredient alloc] init];
+    ing.name = name;
+    ing.quantity = quantity;
+    ing.unit = unit ?: @"";
+    ing.expirationDate = expireStr;
+    ing.createdAt = createStr;
+    ing.storageType = storageType;
+    ing.updatedAt = [NSDate date];
+    ing.syncStatus = @"pending";
+    ing.deleted = NO;
     
-    if (self.existingIngredient) {
-        [[NetworkManager sharedManager] updateIngredient:self.existingIngredient._id familyId:self.familyId params:params success:^(id  _Nullable response) {
-            if (self.completionBlock) {
-                self.completionBlock();
-            }
-            [self.navigationController popViewControllerAnimated:YES];
-        } failure:^(NSError * _Nonnull error) {
-            [self showError:error];
-        }];
-    } else {
-        [[NetworkManager sharedManager] addIngredient:params success:^(id  _Nullable response) {
-            if (self.completionBlock) {
-                self.completionBlock();
-            }
-            [self.navigationController popViewControllerAnimated:YES];
-        } failure:^(NSError * _Nonnull error) {
-            [self showError:error];
-        }];
+    if (!ing.localId) {
+        ing.localId = [[NSUUID UUID] UUIDString];
     }
+    
+    [[DBManager sharedManager] saveIngredient:ing];
+    [[SyncManager sharedManager] sync]; // Trigger sync
+    
+    if (self.completionBlock) {
+        self.completionBlock();
+    }
+    [self.navigationController popViewControllerAnimated:YES];
 }
 
 - (void)showError:(NSError *)error {

@@ -5,7 +5,8 @@ export class IngredientController {
   static async list(req: Request, res: Response) {
     try {
       const { familyId } = req.params;
-      const ingredients = await IngredientService.listByFamily(familyId);
+      const { updated_since } = req.query;
+      const ingredients = await IngredientService.listByFamily(familyId, updated_since as string);
       res.json(ingredients);
     } catch (err: any) {
       res.status(500).json({ error: err.message });

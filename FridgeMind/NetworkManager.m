@@ -116,8 +116,17 @@ static NSString * const kCurrentFamilyIdKey = @"kCurrentFamilyIdKey";
 }
 
 - (void)fetchIngredients:(NSString *)familyId success:(SuccessBlock)success failure:(FailureBlock)failure {
+    [self fetchIngredients:familyId updatedSince:nil success:success failure:failure];
+}
+
+- (void)fetchIngredients:(NSString *)familyId updatedSince:(NSString * _Nullable)since success:(SuccessBlock)success failure:(FailureBlock)failure {
     NSString *url = [NSString stringWithFormat:@"families/%@/ingredients", familyId];
-    [_sessionManager GET:url parameters:nil headers:nil progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+    NSDictionary *params = nil;
+    if (since) {
+        params = @{@"updated_since": since};
+    }
+    
+    [_sessionManager GET:url parameters:params headers:nil progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
         if (success) success(responseObject);
     } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
         if (failure) failure(error);

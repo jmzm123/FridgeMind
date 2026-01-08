@@ -34,6 +34,7 @@ typedef void(^FailureBlock)(NSError *error);
                      failure:(FailureBlock)failure;
 
 - (void)fetchIngredients:(NSString *)familyId success:(SuccessBlock)success failure:(FailureBlock)failure;
+- (void)fetchIngredients:(NSString *)familyId updatedSince:(NSString * _Nullable)since success:(SuccessBlock)success failure:(FailureBlock)failure;
 - (void)addIngredient:(NSDictionary *)params success:(SuccessBlock)success failure:(FailureBlock)failure;
 - (void)updateIngredient:(NSString *)ingredientId
                 familyId:(NSString *)familyId

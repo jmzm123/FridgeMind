@@ -6,6 +6,8 @@
 #import "AddIngredientViewController.h"
 #import "RecipeSuggestionViewController.h"
 #import "Ingredient.h"
+#import "DBManager.h"
+#import "SyncManager.h"
 
 @interface IngredientListViewController () <UITableViewDelegate, UITableViewDataSource, UINavigationControllerDelegate, UIImagePickerControllerDelegate>
 @property (nonatomic, strong) UITableView *tableView;
@@ -22,6 +24,11 @@
     self.view.backgroundColor = [UIColor whiteColor];
     
     [self setupUI];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(loadData) name:kSyncDidFinishNotification object:nil];
+}
+
+- (void)dealloc {
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
 }
 
 - (void)viewWillAppear:(BOOL)animated {
@@ -54,6 +61,10 @@
     [self.tableView mas_makeConstraints:^(MASConstraintMaker *make) {
         make.edges.equalTo(self.view);
     }];
+    
+    UIRefreshControl *refreshControl = [[UIRefreshControl alloc] init];
+    [refreshControl addTarget:self action:@selector(handleRefresh:) forControlEvents:UIControlEventValueChanged];
+    self.tableView.refreshControl = refreshControl;
     
     // Initial setup for non-tabbar usage
     [self updateNavigationItems];
@@ -161,38 +172,27 @@
 }
 
 - (void)addIngredients:(NSArray *)items {
-    // Simple serial addition
-    dispatch_group_t group = dispatch_group_create();
-    __block NSMutableString *errors = [NSMutableString string];
+    NSDateFormatter *isoFormatter = [[NSDateFormatter alloc] init];
+    isoFormatter.dateFormat = @"yyyy-MM-dd'T'HH:mm:ss.SSSZ";
     
     for (NSDictionary *item in items) {
-        dispatch_group_enter(group);
+        Ingredient *ing = [[Ingredient alloc] init];
+        ing.localId = [[NSUUID UUID] UUIDString];
+        ing.name = item[@"name"];
+        ing.quantity = [item[@"quantity"] doubleValue];
+        ing.unit = item[@"unit"];
+        ing.storageType = item[@"storageType"] ?: @"chilled";
+        ing.createdAt = [isoFormatter stringFromDate:[NSDate date]];
+        ing.updatedAt = [NSDate date];
+        ing.syncStatus = @"pending";
+        ing.deleted = NO;
         
-        NSDictionary *params = @{
-            @"name": item[@"name"],
-            @"quantity": item[@"quantity"],
-            @"unit": item[@"unit"],
-            @"expirationDate": @"", // Optional or default
-            @"storageType": item[@"storageType"] ?: @"chilled",
-            @"familyId": [NetworkManager sharedManager].currentFamilyId
-        };
-        
-        [[NetworkManager sharedManager] addIngredient:params success:^(id  _Nullable response) {
-            dispatch_group_leave(group);
-        } failure:^(NSError * _Nonnull error) {
-            [errors appendFormat:@"Failed to add %@: %@\n", item[@"name"], error.localizedDescription];
-            dispatch_group_leave(group);
-        }];
+        [[DBManager sharedManager] saveIngredient:ing];
     }
     
-    dispatch_group_notify(group, dispatch_get_main_queue(), ^{
-        [self loadData];
-        if (errors.length > 0) {
-            [self showError:errors];
-        } else {
-            [self showSuccess:@"所有食材已添加！"];
-        }
-    });
+    [self loadData];
+    [self showSuccess:@"所有食材已添加！"];
+    [[SyncManager sharedManager] sync];
 }
 
 - (void)showError:(NSString *)message {
@@ -242,51 +242,41 @@
 }
 
 - (void)loadData {
-    if (![NetworkManager sharedManager].currentFamilyId) return;
+    // 1. Fetch from DB
+    self.ingredients = [[DBManager sharedManager] fetchAllIngredients];
     
-    [[NetworkManager sharedManager] fetchIngredients:[NetworkManager sharedManager].currentFamilyId success:^(id  _Nullable response) {
-        NSArray *dataArray = response;
-        if ([response isKindOfClass:[NSDictionary class]]) {
-            // Check if response has "data" field or is just the array
-             if (response[@"data"]) {
-                 dataArray = response[@"data"];
-             }
+    // Group ingredients
+    NSMutableArray *chilled = [NSMutableArray array];
+    NSMutableArray *frozen = [NSMutableArray array];
+    NSMutableArray *others = [NSMutableArray array];
+    
+    for (Ingredient *ing in self.ingredients) {
+        if ([ing.storageType isEqualToString:@"frozen"]) {
+            [frozen addObject:ing];
+        } else if ([ing.storageType isEqualToString:@"pantry"]) {
+            [others addObject:ing];
+        } else {
+            [chilled addObject:ing];
         }
-        
-        // If dataArray is still not an array (e.g. wrapper object), we might need more logic.
-        // But let's assume standard array for now.
-        if ([dataArray isKindOfClass:[NSArray class]]) {
-            self.ingredients = [NSArray yy_modelArrayWithClass:[Ingredient class] json:dataArray];
-            
-            // Group ingredients
-            NSMutableArray *chilled = [NSMutableArray array];
-            NSMutableArray *frozen = [NSMutableArray array];
-            NSMutableArray *others = [NSMutableArray array];
-            
-            for (Ingredient *ing in self.ingredients) {
-                if ([ing.storageType isEqualToString:@"frozen"]) {
-                    [frozen addObject:ing];
-                } else if ([ing.storageType isEqualToString:@"pantry"]) {
-                    [others addObject:ing];
-                } else {
-                    [chilled addObject:ing];
-                }
-            }
-            
-            self.sectionTitles = @[@"冷藏室", @"冷冻室", @"其他"];
-            self.groupedIngredients = @{
-                @"冷藏室": chilled,
-                @"冷冻室": frozen,
-                @"其他": others
-            };
-            
-            dispatch_async(dispatch_get_main_queue(), ^{
-                [self.tableView reloadData];
-            });
+    }
+    
+    self.sectionTitles = @[@"冷藏室", @"冷冻室", @"其他"];
+    self.groupedIngredients = @{
+        @"冷藏室": chilled,
+        @"冷冻室": frozen,
+        @"其他": others
+    };
+    
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [self.tableView reloadData];
+        if (self.tableView.refreshControl.isRefreshing) {
+            [self.tableView.refreshControl endRefreshing];
         }
-    } failure:^(NSError * _Nonnull error) {
-        NSLog(@"Failed to fetch ingredients: %@", error);
-    }];
+    });
+}
+
+- (void)handleRefresh:(UIRefreshControl *)sender {
+    [[SyncManager sharedManager] sync];
 }
 
 - (void)addTapped {
@@ -295,6 +285,7 @@
     vc.familyId = [NetworkManager sharedManager].currentFamilyId;
     vc.completionBlock = ^{
         [self loadData];
+        [[SyncManager sharedManager] sync];
     };
     [self.navigationController pushViewController:vc animated:YES];
 }
@@ -385,13 +376,21 @@
     NSDate *created = nil;
     if (ingredient.createdAt) created = [isoFormatter dateFromString:ingredient.createdAt];
     
+    // Fallback parsing for created date
+    if (!created && ingredient.createdAt.length >= 10) {
+        NSDateFormatter *fallbackFormatter = [[NSDateFormatter alloc] init];
+        fallbackFormatter.dateFormat = @"yyyy-MM-dd";
+        created = [fallbackFormatter dateFromString:[ingredient.createdAt substringToIndex:10]];
+    }
+    
     NSDate *expired = nil;
     if (ingredient.expirationDate) expired = [isoFormatter dateFromString:ingredient.expirationDate];
     
     // Fallback parsing if ISO fails (sometimes server might send different format or client expects simple date)
     if (!expired && ingredient.expirationDate.length >= 10) {
-        isoFormatter.dateFormat = @"yyyy-MM-dd";
-        expired = [isoFormatter dateFromString:[ingredient.expirationDate substringToIndex:10]];
+        NSDateFormatter *fallbackFormatter = [[NSDateFormatter alloc] init];
+        fallbackFormatter.dateFormat = @"yyyy-MM-dd";
+        expired = [fallbackFormatter dateFromString:[ingredient.expirationDate substringToIndex:10]];
     }
     
     // Display Date Range
@@ -456,24 +455,17 @@
 - (void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath {
     if (editingStyle == UITableViewCellEditingStyleDelete) {
         NSString *sectionTitle = self.sectionTitles[indexPath.section];
-        NSMutableArray *items = [self.groupedIngredients[sectionTitle] mutableCopy];
+        NSArray *items = self.groupedIngredients[sectionTitle];
         Ingredient *ingredient = items[indexPath.row];
         
-        // Optimistic UI update
-        [items removeObjectAtIndex:indexPath.row];
-        NSMutableDictionary *newGrouped = [self.groupedIngredients mutableCopy];
-        newGrouped[sectionTitle] = items;
-        self.groupedIngredients = newGrouped;
+        // Mark as deleted in DB
+        [[DBManager sharedManager] markIngredientAsDeleted:ingredient.localId];
         
-        [tableView deleteRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationAutomatic];
+        // Reload UI (Optimistic update or full reload)
+        [self loadData]; // Simpler to reload all for now to handle grouping changes
         
-        // Network call
-        [[NetworkManager sharedManager] deleteIngredient:ingredient._id success:^(id  _Nullable response) {
-            NSLog(@"Deleted ingredient: %@", ingredient.name);
-        } failure:^(NSError * _Nonnull error) {
-            [self showError:error.localizedDescription];
-            [self loadData]; // Revert on failure
-        }];
+        // Trigger Sync
+        [[SyncManager sharedManager] sync];
     }
 }
 

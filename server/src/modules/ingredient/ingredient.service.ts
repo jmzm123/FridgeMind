@@ -37,14 +37,29 @@ const toResponse = (row: any) => {
 };
 
 export class IngredientService {
-  // 获取列表 (排除已删除的)
-  static async listByFamily(familyId: string) {
-    const sql = `
-      SELECT * FROM ingredients 
-      WHERE family_id = $1 AND deleted_at IS NULL
-      ORDER BY expire_at ASC NULLS LAST, created_at DESC
-    `;
-    const res = await query(sql, [familyId]);
+  // 获取列表 (支持增量同步)
+  static async listByFamily(familyId: string, updatedSince?: string) {
+    let sql;
+    let params: any[] = [familyId];
+
+    if (updatedSince) {
+      // 增量同步：返回所有更新过的记录 (包括已删除的)
+      sql = `
+        SELECT * FROM ingredients 
+        WHERE family_id = $1 AND updated_at > $2
+        ORDER BY updated_at ASC
+      `;
+      params.push(updatedSince);
+    } else {
+      // 全量/普通列表：只返回未删除的
+      sql = `
+        SELECT * FROM ingredients 
+        WHERE family_id = $1 AND deleted_at IS NULL
+        ORDER BY expire_at ASC NULLS LAST, created_at DESC
+      `;
+    }
+
+    const res = await query(sql, params);
     return res.rows.map(toResponse);
   }
 

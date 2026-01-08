@@ -37,6 +37,31 @@ export class DishService {
     return res.rows[0];
   }
 
+  static async update(id: string, familyId: string, updates: { name: string, ingredients: DishIngredient[], steps: string[], description: string, cookingMethod: string }) {
+    const sql = `
+      UPDATE dishes 
+      SET name = $1, ingredients = $2, steps = $3, description = $4, cooking_method = $5, updated_at = NOW()
+      WHERE id = $6 AND family_id = $7
+      RETURNING *
+    `;
+    const res = await query(sql, [
+      updates.name,
+      JSON.stringify(updates.ingredients),
+      JSON.stringify(updates.steps),
+      updates.description,
+      updates.cookingMethod,
+      id,
+      familyId
+    ]);
+    return res.rows[0];
+  }
+
+  static async delete(id: string, familyId: string) {
+    const sql = `DELETE FROM dishes WHERE id = $1 AND family_id = $2`;
+    const res = await query(sql, [id, familyId]);
+    return (res.rowCount ?? 0) > 0;
+  }
+
   // 做饭决策辅助
   static async makeDecision(familyId: string, dishIds: string[]) {
     // 1. 获取选中的菜品
