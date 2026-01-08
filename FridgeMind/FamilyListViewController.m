@@ -2,6 +2,7 @@
 #import "NetworkManager.h"
 #import <Masonry/Masonry.h>
 #import "IngredientListViewController.h"
+#import "DishListViewController.h"
 #import "CreateFamilyViewController.h"
 
 @interface FamilyListViewController () <UITableViewDelegate, UITableViewDataSource>
@@ -13,7 +14,7 @@
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-    self.title = @"My Families";
+    self.title = @"我的家庭";
     self.view.backgroundColor = [UIColor whiteColor];
     
     // 添加 "Create" 按钮
@@ -70,10 +71,27 @@
     [tableView deselectRowAtIndexPath:indexPath animated:YES];
     NSDictionary *family = self.families[indexPath.row];
     
-    IngredientListViewController *vc = [[IngredientListViewController alloc] init];
-    vc.familyId = family[@"_id"] ?: family[@"id"];
-    vc.familyName = family[@"name"];
-    [self.navigationController pushViewController:vc animated:YES];
+    NSString *familyId = family[@"_id"] ?: family[@"id"];
+    NSString *familyName = family[@"name"];
+    
+    // Create TabBarController
+    UITabBarController *tabBarVC = [[UITabBarController alloc] init];
+    tabBarVC.title = familyName;
+    
+    // Fridge Tab
+    IngredientListViewController *fridgeVC = [[IngredientListViewController alloc] init];
+    fridgeVC.familyId = familyId;
+    fridgeVC.familyName = familyName;
+    fridgeVC.tabBarItem = [[UITabBarItem alloc] initWithTitle:@"Fridge" image:[UIImage systemImageNamed:@"snow"] tag:0];
+    
+    // Menu Tab
+    DishListViewController *menuVC = [[DishListViewController alloc] init];
+    menuVC.familyId = familyId;
+    menuVC.tabBarItem = [[UITabBarItem alloc] initWithTitle:@"Menu" image:[UIImage systemImageNamed:@"book"] tag:1];
+    
+    tabBarVC.viewControllers = @[fridgeVC, menuVC];
+    
+    [self.navigationController pushViewController:tabBarVC animated:YES];
 }
 
 @end

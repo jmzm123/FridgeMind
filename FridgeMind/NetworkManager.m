@@ -155,4 +155,37 @@ static NSString * const kBaseURL = @"http://localhost:3000/api/v1";
     }];
 }
 
+#pragma mark - Dish
+
+- (void)fetchDishes:(NSString *)familyId success:(SuccessBlock)success failure:(FailureBlock)failure {
+    // GET /api/v1/families/:familyId/dishes
+    NSString *url = [NSString stringWithFormat:@"families/%@/dishes", familyId];
+    [_sessionManager GET:url parameters:nil headers:nil progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+        if (success) success(responseObject);
+    } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
+        if (failure) failure(error);
+    }];
+}
+
+- (void)createDish:(NSDictionary *)params familyId:(NSString *)familyId success:(SuccessBlock)success failure:(FailureBlock)failure {
+    // POST /api/v1/families/:familyId/dishes
+    NSString *url = [NSString stringWithFormat:@"families/%@/dishes", familyId];
+    [_sessionManager POST:url parameters:params headers:nil progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+        if (success) success(responseObject);
+    } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
+        if (failure) failure(error);
+    }];
+}
+
+- (void)makeCookDecision:(NSString *)familyId dishIds:(NSArray *)dishIds success:(SuccessBlock)success failure:(FailureBlock)failure {
+    // POST /api/v1/families/:familyId/dishes/cook-decision
+    NSString *url = [NSString stringWithFormat:@"families/%@/dishes/cook-decision", familyId];
+    NSDictionary *params = @{@"dishIds": dishIds};
+    [_sessionManager POST:url parameters:params headers:nil progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+        if (success) success(responseObject);
+    } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
+        if (failure) failure(error);
+    }];
+}
+
 @end

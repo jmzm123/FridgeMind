@@ -16,7 +16,7 @@
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-    self.title = self.familyName ?: @"Ingredients";
+    self.title = self.familyName ?: @"食材";
     self.view.backgroundColor = [UIColor whiteColor];
     
     [self setupUI];
@@ -25,6 +25,23 @@
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
     [self loadData];
+    [self updateNavigationItems];
+}
+
+- (void)updateNavigationItems {
+    UINavigationItem *navItem = self.tabBarController.navigationItem ?: self.navigationItem;
+    navItem.title = self.familyName ?: @"食材";
+    
+    // Add Item Button (Right Bar Button)
+    UIBarButtonItem *addItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAdd target:self action:@selector(addTapped)];
+    
+    // Chef Button
+    UIBarButtonItem *chefItem = [[UIBarButtonItem alloc] initWithImage:[UIImage systemImageNamed:@"wand.and.stars"] style:UIBarButtonItemStylePlain target:self action:@selector(chefTapped)];
+    
+    // Camera Button
+    UIBarButtonItem *cameraItem = [[UIBarButtonItem alloc] initWithImage:[UIImage systemImageNamed:@"camera"] style:UIBarButtonItemStylePlain target:self action:@selector(cameraTapped)];
+    
+    navItem.rightBarButtonItems = @[addItem, chefItem, cameraItem];
 }
 
 - (void)setupUI {
@@ -37,32 +54,24 @@
         make.edges.equalTo(self.view);
     }];
     
-    // Add Item Button (Right Bar Button)
-    UIBarButtonItem *addItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAdd target:self action:@selector(addTapped)];
-    
-    // Chef Button
-    UIBarButtonItem *chefItem = [[UIBarButtonItem alloc] initWithImage:[UIImage systemImageNamed:@"wand.and.stars"] style:UIBarButtonItemStylePlain target:self action:@selector(chefTapped)];
-    
-    // Camera Button
-    UIBarButtonItem *cameraItem = [[UIBarButtonItem alloc] initWithImage:[UIImage systemImageNamed:@"camera"] style:UIBarButtonItemStylePlain target:self action:@selector(cameraTapped)];
-    
-    self.navigationItem.rightBarButtonItems = @[addItem, chefItem, cameraItem];
+    // Initial setup for non-tabbar usage
+    [self updateNavigationItems];
 }
 
 - (void)cameraTapped {
-    UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"Identify Ingredients" message:@"Take a photo or choose from library" preferredStyle:UIAlertControllerStyleActionSheet];
+    UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"识别食材" message:@"拍照或从相册选择" preferredStyle:UIAlertControllerStyleActionSheet];
     
     if ([UIImagePickerController isSourceTypeAvailable:UIImagePickerControllerSourceTypeCamera]) {
-        [alert addAction:[UIAlertAction actionWithTitle:@"Camera" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+        [alert addAction:[UIAlertAction actionWithTitle:@"相机" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
             [self showImagePicker:UIImagePickerControllerSourceTypeCamera];
         }]];
     }
     
-    [alert addAction:[UIAlertAction actionWithTitle:@"Photo Library" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+    [alert addAction:[UIAlertAction actionWithTitle:@"相册" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
         [self showImagePicker:UIImagePickerControllerSourceTypePhotoLibrary];
     }]];
     
-    [alert addAction:[UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:nil]];
+    [alert addAction:[UIAlertAction actionWithTitle:@"取消" style:UIAlertActionStyleCancel handler:nil]];
     
     [self presentViewController:alert animated:YES completion:nil];
 }
@@ -115,7 +124,7 @@
     
     // NetworkManager expects raw base64 string, it adds the prefix internally
     // Show Loading
-    UIAlertController *loading = [UIAlertController alertControllerWithTitle:@"Identifying..." message:@"AI is looking at your food..." preferredStyle:UIAlertControllerStyleAlert];
+    UIAlertController *loading = [UIAlertController alertControllerWithTitle:@"识别中..." message:@"AI正在查看您的食物..." preferredStyle:UIAlertControllerStyleAlert];
     [self presentViewController:loading animated:YES completion:nil];
     
     [[NetworkManager sharedManager] identifyIngredientsWithImageBase64:base64 success:^(id  _Nullable response) {
@@ -123,7 +132,7 @@
             if ([response isKindOfClass:[NSArray class]]) {
                 [self showIdentifiedIngredients:(NSArray *)response];
             } else {
-                [self showError:@"Invalid response from AI"];
+                [self showError:@"AI响应无效"];
             }
         }];
     } failure:^(NSError * _Nonnull error) {
@@ -134,18 +143,18 @@
 }
 
 - (void)showIdentifiedIngredients:(NSArray *)items {
-    NSMutableString *message = [NSMutableString stringWithString:@"Found:\n"];
+    NSMutableString *message = [NSMutableString stringWithString:@"发现：\n"];
     for (NSDictionary *item in items) {
         [message appendFormat:@"- %@ (%@ %@)\n", item[@"name"], item[@"quantity"], item[@"unit"]];
     }
     
-    UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"Ingredients Identified" message:message preferredStyle:UIAlertControllerStyleAlert];
+    UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"识别到的食材" message:message preferredStyle:UIAlertControllerStyleAlert];
     
-    [alert addAction:[UIAlertAction actionWithTitle:@"Add All to Fridge" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+    [alert addAction:[UIAlertAction actionWithTitle:@"全部添加到冰箱" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
         [self addIngredients:items];
     }]];
     
-    [alert addAction:[UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:nil]];
+    [alert addAction:[UIAlertAction actionWithTitle:@"取消" style:UIAlertActionStyleCancel handler:nil]];
     
     [self presentViewController:alert animated:YES completion:nil];
 }
@@ -170,7 +179,7 @@
         [[NetworkManager sharedManager] addIngredient:params success:^(id  _Nullable response) {
             dispatch_group_leave(group);
         } failure:^(NSError * _Nonnull error) {
-            [errors appendFormat:@"Failed to add %@: %@\n", item[@"name"], error.localizedDescription];
+            [errors appendFormat:@"添加 %@ 失败: %@\n", item[@"name"], error.localizedDescription];
             dispatch_group_leave(group);
         }];
     }
@@ -180,19 +189,19 @@
         if (errors.length > 0) {
             [self showError:errors];
         } else {
-            [self showSuccess:@"All ingredients added!"];
+            [self showSuccess:@"所有食材已添加！"];
         }
     });
 }
 
 - (void)showError:(NSString *)message {
-    UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"Error" message:message preferredStyle:UIAlertControllerStyleAlert];
+    UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"错误" message:message preferredStyle:UIAlertControllerStyleAlert];
     [alert addAction:[UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault handler:nil]];
     [self presentViewController:alert animated:YES completion:nil];
 }
 
 - (void)showSuccess:(NSString *)message {
-    UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"Success" message:message preferredStyle:UIAlertControllerStyleAlert];
+    UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"成功" message:message preferredStyle:UIAlertControllerStyleAlert];
     [alert addAction:[UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault handler:nil]];
     [self presentViewController:alert animated:YES completion:nil];
 }
@@ -288,7 +297,7 @@
         // Simple string extraction or formatting
         // Assuming backend sends ISO string
         if (ingredient.expirationDate.length >= 10) {
-             dateStr = [NSString stringWithFormat:@" - Expires: %@", [ingredient.expirationDate substringToIndex:10]];
+             dateStr = [NSString stringWithFormat:@" - 过期: %@", [ingredient.expirationDate substringToIndex:10]];
         }
     }
     

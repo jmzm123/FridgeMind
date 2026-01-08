@@ -43,6 +43,14 @@ typedef void(^FailureBlock)(NSError *error);
 
 - (void)identifyIngredientsWithImageBase64:(NSString *)imageBase64 success:(SuccessBlock)success failure:(FailureBlock)failure;
 
+#pragma mark - Dish
+
+- (void)fetchDishes:(NSString *)familyId success:(SuccessBlock)success failure:(FailureBlock)failure;
+
+- (void)createDish:(NSDictionary *)params familyId:(NSString *)familyId success:(SuccessBlock)success failure:(FailureBlock)failure;
+
+- (void)makeCookDecision:(NSString *)familyId dishIds:(NSArray *)dishIds success:(SuccessBlock)success failure:(FailureBlock)failure;
+
 @end
 
 NS_ASSUME_NONNULL_END
