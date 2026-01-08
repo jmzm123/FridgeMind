@@ -163,6 +163,15 @@ static NSString * const kCurrentFamilyIdKey = @"kCurrentFamilyIdKey";
     }];
 }
 
+- (void)deleteIngredient:(NSString *)ingredientId success:(SuccessBlock)success failure:(FailureBlock)failure {
+    NSString *url = [NSString stringWithFormat:@"ingredients/%@", ingredientId];
+    [_sessionManager DELETE:url parameters:nil headers:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+        if (success) success(responseObject);
+    } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
+        if (failure) failure(error);
+    }];
+}
+
 #pragma mark - AI
 
 - (void)suggestRecipeWithIngredients:(NSArray<NSString *> *)ingredients success:(SuccessBlock)success failure:(FailureBlock)failure {

@@ -41,6 +41,10 @@ typedef void(^FailureBlock)(NSError *error);
                  success:(SuccessBlock)success
                  failure:(FailureBlock)failure;
 
+- (void)deleteIngredient:(NSString *)ingredientId
+                 success:(SuccessBlock)success
+                 failure:(FailureBlock)failure;
+
 #pragma mark - AI
 
 - (void)suggestRecipeWithIngredients:(NSArray<NSString *> *)ingredients success:(SuccessBlock)success failure:(FailureBlock)failure;

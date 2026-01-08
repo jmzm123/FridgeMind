@@ -7,6 +7,7 @@ export interface CreateIngredientDTO {
   quantity: number;
   unit: string;
   expirationDate?: string;
+  createdAt?: string;
 }
 
 export interface UpdateIngredientDTO {
@@ -15,6 +16,7 @@ export interface UpdateIngredientDTO {
   unit?: string;
   name?: string;
   expirationDate?: string;
+  createdAt?: string;
 }
 
 const toResponse = (row: any) => {
@@ -64,8 +66,8 @@ export class IngredientService {
     }
 
     const sql = `
-      INSERT INTO ingredients (family_id, name, storage_type, quantity, unit, expire_at)
-      VALUES ($1, $2, $3, $4, $5, $6)
+      INSERT INTO ingredients (family_id, name, storage_type, quantity, unit, expire_at, created_at)
+      VALUES ($1, $2, $3, $4, $5, $6, $7)
       RETURNING *
     `;
     
@@ -75,13 +77,20 @@ export class IngredientService {
       data.storageType,
       data.quantity,
       data.unit,
-      expireAt
+      expireAt,
+      data.createdAt ? new Date(data.createdAt) : new Date()
     ]);
     return toResponse(res.rows[0]);
   }
 
   // 更新食材
   static async update(id: string, data: UpdateIngredientDTO) {
+    // 消耗控制：如果数量 <= 0，则从冰箱移除 (软删除)
+    if (data.quantity !== undefined && data.quantity <= 0) {
+        await this.delete(id);
+        return { id, deleted: true };
+    }
+
     // 动态构建 update 语句
     const fields: string[] = [];
     const values: any[] = [];
@@ -92,6 +101,7 @@ export class IngredientService {
     if (data.unit) { fields.push(`unit = $${idx++}`); values.push(data.unit); }
     if (data.storageType) { fields.push(`storage_type = $${idx++}`); values.push(data.storageType); }
     if (data.expirationDate) { fields.push(`expire_at = $${idx++}`); values.push(new Date(data.expirationDate)); }
+    if (data.createdAt) { fields.push(`created_at = $${idx++}`); values.push(new Date(data.createdAt)); }
 
     if (fields.length === 0) return null;
 

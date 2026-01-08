@@ -346,6 +346,90 @@
         cell.imageView.image = [UIImage systemImageNamed:@"carrot"];
     }
     
+    // Date Label (Right side)
+    UILabel *dateLabel = [cell.contentView viewWithTag:1001];
+    if (!dateLabel) {
+        dateLabel = [[UILabel alloc] init];
+        dateLabel.tag = 1001;
+        dateLabel.font = [UIFont systemFontOfSize:10];
+        dateLabel.textColor = [UIColor grayColor];
+        dateLabel.textAlignment = NSTextAlignmentRight;
+        [cell.contentView addSubview:dateLabel];
+    }
+    
+    [dateLabel mas_remakeConstraints:^(MASConstraintMaker *make) {
+        make.top.equalTo(cell.contentView).offset(12);
+        make.right.equalTo(cell.contentView).offset(-16);
+    }];
+
+    // Progress Bar (Right side, below date)
+    UIProgressView *progressView = [cell.contentView viewWithTag:999];
+    if (!progressView) {
+        progressView = [[UIProgressView alloc] initWithProgressViewStyle:UIProgressViewStyleDefault];
+        progressView.tag = 999;
+        [cell.contentView addSubview:progressView];
+    }
+    
+    [progressView mas_remakeConstraints:^(MASConstraintMaker *make) {
+        make.top.equalTo(dateLabel.mas_bottom).offset(5);
+        make.right.equalTo(dateLabel);
+        make.width.mas_equalTo(100);
+        make.height.mas_equalTo(2);
+    }];
+    
+    // Calculate progress
+    // Formatters are expensive, better to cache or use static, but for now alloc init is fine for MVP
+    NSDateFormatter *isoFormatter = [[NSDateFormatter alloc] init];
+    isoFormatter.dateFormat = @"yyyy-MM-dd'T'HH:mm:ss.SSSZ";
+    
+    NSDate *created = nil;
+    if (ingredient.createdAt) created = [isoFormatter dateFromString:ingredient.createdAt];
+    
+    NSDate *expired = nil;
+    if (ingredient.expirationDate) expired = [isoFormatter dateFromString:ingredient.expirationDate];
+    
+    // Fallback parsing if ISO fails (sometimes server might send different format or client expects simple date)
+    if (!expired && ingredient.expirationDate.length >= 10) {
+        isoFormatter.dateFormat = @"yyyy-MM-dd";
+        expired = [isoFormatter dateFromString:[ingredient.expirationDate substringToIndex:10]];
+    }
+    
+    // Display Date Range
+    NSDateFormatter *displayFormatter = [[NSDateFormatter alloc] init];
+    displayFormatter.dateFormat = @"MM-dd HH:mm";
+    NSString *createdStr = created ? [displayFormatter stringFromDate:created] : @"--";
+    NSString *expiredStr = expired ? [displayFormatter stringFromDate:expired] : @"--";
+    dateLabel.text = [NSString stringWithFormat:@"%@ ~ %@", createdStr, expiredStr];
+    
+    // Clean up detail text (remove old date info)
+    cell.detailTextLabel.text = [NSString stringWithFormat:@"%.1f %@", ingredient.quantity, ingredient.unit ?: @""];
+
+    if (created && expired) {
+        NSTimeInterval total = [expired timeIntervalSinceDate:created];
+        NSTimeInterval elapsed = [[NSDate date] timeIntervalSinceDate:created];
+        
+        if (total > 0) {
+            float progress = elapsed / total;
+            if (progress < 0) progress = 0;
+            if (progress > 1) progress = 1;
+            
+            progressView.progress = progress;
+            progressView.hidden = NO;
+            
+            if (progress > 0.9) {
+                progressView.progressTintColor = [UIColor redColor];
+            } else if (progress > 0.7) {
+                progressView.progressTintColor = [UIColor orangeColor];
+            } else {
+                progressView.progressTintColor = [UIColor greenColor];
+            }
+        } else {
+            progressView.hidden = YES;
+        }
+    } else {
+        progressView.hidden = YES;
+    }
+    
     return cell;
 }
 
@@ -363,6 +447,34 @@
         [self loadData];
     };
     [self.navigationController pushViewController:vc animated:YES];
+}
+
+- (BOOL)tableView:(UITableView *)tableView canEditRowAtIndexPath:(NSIndexPath *)indexPath {
+    return YES;
+}
+
+- (void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath {
+    if (editingStyle == UITableViewCellEditingStyleDelete) {
+        NSString *sectionTitle = self.sectionTitles[indexPath.section];
+        NSMutableArray *items = [self.groupedIngredients[sectionTitle] mutableCopy];
+        Ingredient *ingredient = items[indexPath.row];
+        
+        // Optimistic UI update
+        [items removeObjectAtIndex:indexPath.row];
+        NSMutableDictionary *newGrouped = [self.groupedIngredients mutableCopy];
+        newGrouped[sectionTitle] = items;
+        self.groupedIngredients = newGrouped;
+        
+        [tableView deleteRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationAutomatic];
+        
+        // Network call
+        [[NetworkManager sharedManager] deleteIngredient:ingredient._id success:^(id  _Nullable response) {
+            NSLog(@"Deleted ingredient: %@", ingredient.name);
+        } failure:^(NSError * _Nonnull error) {
+            [self showError:error.localizedDescription];
+            [self loadData]; // Revert on failure
+        }];
+    }
 }
 
 @end

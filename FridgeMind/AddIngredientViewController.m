@@ -7,7 +7,10 @@
 @property (nonatomic, strong) UITextField *quantityField;
 @property (nonatomic, strong) UITextField *unitField;
 @property (nonatomic, strong) UISegmentedControl *storageControl;
-@property (nonatomic, strong) UIDatePicker *datePicker;
+@property (nonatomic, strong) UIDatePicker *expirationDatePicker;
+@property (nonatomic, strong) UIDatePicker *putInDatePicker;
+@property (nonatomic, strong) UILabel *expirationLabel;
+@property (nonatomic, strong) UILabel *putInLabel;
 @property (nonatomic, strong) UIButton *cameraButton;
 @end
 
@@ -35,15 +38,22 @@
             }
         }
         
+        NSDateFormatter *f = [[NSDateFormatter alloc] init];
+        f.dateFormat = @"yyyy-MM-dd'T'HH:mm:ss.SSSZ";
+        
         if (self.existingIngredient.expirationDate) {
-            NSDateFormatter *f = [[NSDateFormatter alloc] init];
-            f.dateFormat = @"yyyy-MM-dd'T'HH:mm:ss.SSSZ";
             NSDate *d = [f dateFromString:self.existingIngredient.expirationDate];
             if (!d) {
-                f.dateFormat = @"yyyy-MM-dd";
+                f.dateFormat = @"yyyy-MM-dd"; // Fallback
                 d = [f dateFromString:self.existingIngredient.expirationDate];
+                f.dateFormat = @"yyyy-MM-dd'T'HH:mm:ss.SSSZ"; // Reset
             }
-            if (d) self.datePicker.date = d;
+            if (d) self.expirationDatePicker.date = d;
+        }
+        
+        if (self.existingIngredient.createdAt) {
+             NSDate *d = [f dateFromString:self.existingIngredient.createdAt];
+             if (d) self.putInDatePicker.date = d;
         }
     }
     
@@ -81,13 +91,33 @@
     self.storageControl.selectedSegmentIndex = 0;
     [self.view addSubview:self.storageControl];
     
-    // Date Picker
-    self.datePicker = [[UIDatePicker alloc] init];
-    self.datePicker.datePickerMode = UIDatePickerModeDate;
+    // Put In Date Label & Picker
+    self.putInLabel = [[UILabel alloc] init];
+    self.putInLabel.text = @"放入时间:";
+    self.putInLabel.font = [UIFont systemFontOfSize:14];
+    [self.view addSubview:self.putInLabel];
+    
+    self.putInDatePicker = [[UIDatePicker alloc] init];
+    self.putInDatePicker.datePickerMode = UIDatePickerModeDateAndTime;
     if (@available(iOS 13.4, *)) {
-        self.datePicker.preferredDatePickerStyle = UIDatePickerStyleWheels;
+        self.putInDatePicker.preferredDatePickerStyle = UIDatePickerStyleCompact;
     }
-    [self.view addSubview:self.datePicker];
+    [self.view addSubview:self.putInDatePicker];
+    
+    // Expiration Date Label & Picker
+    self.expirationLabel = [[UILabel alloc] init];
+    self.expirationLabel.text = @"过期时间:";
+    self.expirationLabel.font = [UIFont systemFontOfSize:14];
+    [self.view addSubview:self.expirationLabel];
+
+    self.expirationDatePicker = [[UIDatePicker alloc] init];
+    self.expirationDatePicker.datePickerMode = UIDatePickerModeDateAndTime;
+    if (@available(iOS 13.4, *)) {
+        self.expirationDatePicker.preferredDatePickerStyle = UIDatePickerStyleCompact;
+    }
+    // Default expiration + 7 days
+    self.expirationDatePicker.date = [NSDate dateWithTimeIntervalSinceNow:7*24*3600];
+    [self.view addSubview:self.expirationDatePicker];
     
     // Layout
     [self.nameField mas_makeConstraints:^(MASConstraintMaker *make) {
@@ -107,9 +137,32 @@
         make.left.right.height.equalTo(self.nameField);
     }];
     
-    [self.datePicker mas_makeConstraints:^(MASConstraintMaker *make) {
+    [self.storageControl mas_makeConstraints:^(MASConstraintMaker *make) {
         make.top.equalTo(self.unitField.mas_bottom).offset(15);
-        make.centerX.equalTo(self.view);
+        make.left.right.equalTo(self.nameField);
+        make.height.mas_equalTo(32);
+    }];
+    
+    // Put In Date Layout
+    [self.putInLabel mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.top.equalTo(self.storageControl.mas_bottom).offset(20);
+        make.left.equalTo(self.nameField);
+    }];
+    
+    [self.putInDatePicker mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.centerY.equalTo(self.putInLabel);
+        make.right.equalTo(self.nameField);
+    }];
+    
+    // Expiration Date Layout
+    [self.expirationLabel mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.top.equalTo(self.putInLabel.mas_bottom).offset(20);
+        make.left.equalTo(self.nameField);
+    }];
+    
+    [self.expirationDatePicker mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.centerY.equalTo(self.expirationLabel);
+        make.right.equalTo(self.nameField);
     }];
 }
 
@@ -214,8 +267,9 @@
     
     // Format Date
     NSDateFormatter *isoFormatter = [[NSDateFormatter alloc] init];
-    isoFormatter.dateFormat = @"yyyy-MM-dd";
-    NSString *dateStr = [isoFormatter stringFromDate:self.datePicker.date];
+    isoFormatter.dateFormat = @"yyyy-MM-dd'T'HH:mm:ss.SSSZ";
+    NSString *expireStr = [isoFormatter stringFromDate:self.expirationDatePicker.date];
+    NSString *createStr = [isoFormatter stringFromDate:self.putInDatePicker.date];
     
     NSString *storageType = @"chilled";
     if (self.storageControl.selectedSegmentIndex == 1) {
@@ -229,7 +283,8 @@
         @"name": name,
         @"quantity": @(quantity),
         @"unit": unit ?: @"",
-        @"expirationDate": dateStr,
+        @"expirationDate": expireStr,
+        @"createdAt": createStr,
         @"storageType": storageType
     };
     
