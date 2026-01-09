@@ -13,6 +13,7 @@
 #import "IngredientListViewController.h"
 #import "DishListViewController.h"
 #import "ProfileViewController.h"
+#import "SyncManager.h"
 
 @interface SceneDelegate ()
 
@@ -71,6 +72,9 @@
     tabBarVC.tabBar.tintColor = [UIColor systemBlueColor]; // Or user preferred color
     
     self.window.rootViewController = tabBarVC;
+    
+    // Trigger sync on launch/entry
+    [[SyncManager sharedManager] sync];
 }
 
 

@@ -166,6 +166,12 @@ NSString * const kSyncDidFinishNotification = @"kSyncDidFinishNotification";
                      }
                 } else {
                     if (localIng) {
+                        // Protect local pending changes
+                        if ([localIng.syncStatus isEqualToString:@"pending"] || [localIng.syncStatus isEqualToString:@"failed"]) {
+                            NSLog(@"Skipping overwrite of local pending ingredient: %@", localIng.name);
+                            continue;
+                        }
+                        
                         // Overwrite
                         serverIng.localId = localIng.localId;
                         serverIng.syncStatus = @"synced";

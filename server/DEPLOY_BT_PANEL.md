@@ -36,10 +36,12 @@
 
 ### 方法 B：使用 Git 拉取 (你使用的方法)
 1. 在宝塔面板或终端进入 `/www/wwwroot` 目录。
-2. 使用 git clone 拉取你的仓库：
+2. 使用 git clone 拉取你的整个仓库：
    ```bash
-   git clone 你的仓库地址 fridgemind-server
+   git clone 你的仓库地址 FridgeMind
    ```
+   *(注意：因为你的仓库包含前后端，拉取后会有 `server` 子目录)*
+
 3. **⚠️ 安全警告**：你提到上传了 `.env` 文件。
    - **风险**：`.env` 包含密钥和数据库密码，通常不应提交到 Git。
    - **操作**：请务必确保你的 Git 仓库是私有的。
@@ -49,9 +51,9 @@
 ## 步骤 3：安装依赖与编译
 
 1. 打开宝塔面板 -> **终端** (或 SSH 连接服务器)。
-2. 进入项目目录：
+2. 进入服务端目录 (关键区别)：
    ```bash
-   cd /www/wwwroot/fridgemind-server
+   cd /www/wwwroot/FridgeMind/server
    ```
 3. 安装依赖：
    ```bash
@@ -64,7 +66,7 @@
    ```bash
    npm run build
    ```
-   *成功后会生成 `dist` 目录。*
+   *成功后会在 `server` 目录下生成 `dist` 目录。*
 
 5. 初始化数据库表结构：
    ```bash
@@ -91,7 +93,7 @@
 
 **注意**：既然你上传了 `.env`，它现在已经在服务器上了。但里面的配置（如 `DB_PASS`）通常是你本地电脑的，**直接运行会报错**。
 
-1. 在宝塔面板 -> **文件** 中找到 `/www/wwwroot/fridgemind-server/.env` 文件。
+1. 在宝塔面板 -> **文件** 中找到 `/www/wwwroot/FridgeMind/server/.env` 文件。
 2. **编辑** 该文件，将数据库信息修改为【步骤 1】中在宝塔创建的信息：
 
 ```ini
@@ -116,9 +118,9 @@ JWT_SECRET=...
 
 1. 打开宝塔面板 -> **软件商店** -> **PM2管理器**。
 2. 点击 **添加项目**：
-   - **启动文件**: 选择 `/www/wwwroot/fridgemind-server/dist/server.js` 
-     *(注意是 dist 目录下的 server.js)*
-   - **运行目录**: `/www/wwwroot/fridgemind-server`
+   - **启动文件**: 选择 `/www/wwwroot/FridgeMind/server/dist/server.js` 
+     *(注意路径中多了 server 目录)*
+   - **运行目录**: `/www/wwwroot/FridgeMind/server`
    - **项目名称**: `fridgemind`
 3. 点击 **提交**。
 4. 在列表中看到项目状态为绿色 (Running) 即表示启动成功。

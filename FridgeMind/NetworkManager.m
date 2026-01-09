@@ -1,7 +1,7 @@
 #import "NetworkManager.h"
 #import <AFNetworking/AFNetworking.h>
 
-static NSString * const kBaseURL = @"http://localhost:3000/api/v1";
+static NSString * const kBaseURL = @"http://47.107.58.165/api/v1";
 static NSString * const kAuthTokenKey = @"kAuthTokenKey";
 static NSString * const kCurrentFamilyIdKey = @"kCurrentFamilyIdKey";
 
