@@ -6,7 +6,8 @@ class IngredientController {
     static async list(req, res) {
         try {
             const { familyId } = req.params;
-            const ingredients = await ingredient_service_1.IngredientService.listByFamily(familyId);
+            const { updated_since } = req.query;
+            const ingredients = await ingredient_service_1.IngredientService.listByFamily(familyId, updated_since);
             res.json(ingredients);
         }
         catch (err) {
@@ -16,7 +17,7 @@ class IngredientController {
     static async create(req, res) {
         try {
             const { familyId } = req.params;
-            const { name, storageType, quantity, unit } = req.body;
+            const { name, storageType, quantity, unit, expirationDate, createdAt } = req.body;
             if (!name || !storageType) {
                 return res.status(400).json({ error: 'Name and storageType required' });
             }
@@ -25,7 +26,9 @@ class IngredientController {
                 name,
                 storageType,
                 quantity: quantity || 1,
-                unit: unit || '个'
+                unit: unit || '个',
+                expirationDate,
+                createdAt
             });
             res.status(201).json(ingredient);
         }

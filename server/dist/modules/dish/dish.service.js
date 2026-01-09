@@ -9,14 +9,49 @@ class DishService {
         const res = await (0, database_1.query)(sql, [familyId]);
         return res.rows;
     }
-    static async create(familyId, name, ingredients) {
+    static async get(id, familyId) {
+        const sql = `SELECT * FROM dishes WHERE id = $1 AND family_id = $2`;
+        const res = await (0, database_1.query)(sql, [id, familyId]);
+        return res.rows[0];
+    }
+    static async create(familyId, name, ingredients, steps = [], description = '', cookingMethod = '') {
         const sql = `
-      INSERT INTO dishes (family_id, name, ingredients)
-      VALUES ($1, $2, $3)
+      INSERT INTO dishes (family_id, name, ingredients, steps, description, cooking_method)
+      VALUES ($1, $2, $3, $4, $5, $6)
       RETURNING *
     `;
-        const res = await (0, database_1.query)(sql, [familyId, name, JSON.stringify(ingredients)]);
+        const res = await (0, database_1.query)(sql, [
+            familyId,
+            name,
+            JSON.stringify(ingredients),
+            JSON.stringify(steps),
+            description,
+            cookingMethod
+        ]);
         return res.rows[0];
+    }
+    static async update(id, familyId, updates) {
+        const sql = `
+      UPDATE dishes 
+      SET name = $1, ingredients = $2, steps = $3, description = $4, cooking_method = $5, updated_at = NOW()
+      WHERE id = $6 AND family_id = $7
+      RETURNING *
+    `;
+        const res = await (0, database_1.query)(sql, [
+            updates.name,
+            JSON.stringify(updates.ingredients),
+            JSON.stringify(updates.steps),
+            updates.description,
+            updates.cookingMethod,
+            id,
+            familyId
+        ]);
+        return res.rows[0];
+    }
+    static async delete(id, familyId) {
+        const sql = `DELETE FROM dishes WHERE id = $1 AND family_id = $2`;
+        const res = await (0, database_1.query)(sql, [id, familyId]);
+        return (res.rowCount ?? 0) > 0;
     }
     // 做饭决策辅助
     static async makeDecision(familyId, dishIds) {
@@ -28,6 +63,8 @@ class DishService {
         // 建立库存索引：Name -> Item[]
         const stockMap = {};
         inventory.forEach(item => {
+            if (!item)
+                return;
             if (!stockMap[item.name])
                 stockMap[item.name] = [];
             stockMap[item.name].push(item);

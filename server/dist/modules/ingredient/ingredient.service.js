@@ -2,31 +2,68 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.IngredientService = void 0;
 const database_1 = require("../../config/database");
+const toResponse = (row) => {
+    if (!row)
+        return null;
+    return {
+        id: row.id,
+        _id: row.id,
+        familyId: row.family_id,
+        name: row.name,
+        storageType: row.storage_type,
+        quantity: parseFloat(row.quantity),
+        unit: row.unit,
+        expirationDate: row.expire_at,
+        imageUrl: row.image_url,
+        createdAt: row.created_at,
+        updatedAt: row.updated_at
+    };
+};
 class IngredientService {
-    // 获取列表 (排除已删除的)
-    static async listByFamily(familyId) {
-        const sql = `
-      SELECT * FROM ingredients 
-      WHERE family_id = $1 AND deleted_at IS NULL
-      ORDER BY expire_at ASC NULLS LAST, created_at DESC
-    `;
-        const res = await (0, database_1.query)(sql, [familyId]);
-        return res.rows;
+    // 获取列表 (支持增量同步)
+    static async listByFamily(familyId, updatedSince) {
+        let sql;
+        let params = [familyId];
+        if (updatedSince) {
+            // 增量同步：返回所有更新过的记录 (包括已删除的)
+            sql = `
+        SELECT * FROM ingredients 
+        WHERE family_id = $1 AND updated_at > $2
+        ORDER BY updated_at ASC
+      `;
+            params.push(updatedSince);
+        }
+        else {
+            // 全量/普通列表：只返回未删除的
+            sql = `
+        SELECT * FROM ingredients 
+        WHERE family_id = $1 AND deleted_at IS NULL
+        ORDER BY expire_at ASC NULLS LAST, created_at DESC
+      `;
+        }
+        const res = await (0, database_1.query)(sql, params);
+        return res.rows.map(toResponse);
     }
     // 新增食材
     static async create(data) {
-        // 简单计算 expire_at (MVP 逻辑: 冷冻90天，冷藏7天，常温30天)
-        // 实际应该由 AI 或更复杂的规则决定，这里先硬编码
-        let expireDays = 30;
-        if (data.storageType === 'frozen')
-            expireDays = 90;
-        if (data.storageType === 'chilled')
-            expireDays = 7;
-        const expireAt = new Date();
-        expireAt.setDate(expireAt.getDate() + expireDays);
+        let expireAt;
+        if (data.expirationDate) {
+            expireAt = new Date(data.expirationDate);
+        }
+        else {
+            // 简单计算 expire_at (MVP 逻辑: 冷冻90天，冷藏7天，常温30天)
+            // 实际应该由 AI 或更复杂的规则决定，这里先硬编码
+            let expireDays = 30;
+            if (data.storageType === 'frozen')
+                expireDays = 90;
+            if (data.storageType === 'chilled' || data.storageType === 'refrigerated')
+                expireDays = 7;
+            expireAt = new Date();
+            expireAt.setDate(expireAt.getDate() + expireDays);
+        }
         const sql = `
-      INSERT INTO ingredients (family_id, name, storage_type, quantity, unit, expire_at)
-      VALUES ($1, $2, $3, $4, $5, $6)
+      INSERT INTO ingredients (family_id, name, storage_type, quantity, unit, expire_at, created_at)
+      VALUES ($1, $2, $3, $4, $5, $6, $7)
       RETURNING *
     `;
         const res = await (0, database_1.query)(sql, [
@@ -35,12 +72,18 @@ class IngredientService {
             data.storageType,
             data.quantity,
             data.unit,
-            expireAt
+            expireAt,
+            data.createdAt ? new Date(data.createdAt) : new Date()
         ]);
-        return res.rows[0];
+        return toResponse(res.rows[0]);
     }
     // 更新食材
     static async update(id, data) {
+        // 消耗控制：如果数量 <= 0，则从冰箱移除 (软删除)
+        if (data.quantity !== undefined && data.quantity <= 0) {
+            await this.delete(id);
+            return { id, deleted: true };
+        }
         // 动态构建 update 语句
         const fields = [];
         const values = [];
@@ -61,6 +104,14 @@ class IngredientService {
             fields.push(`storage_type = $${idx++}`);
             values.push(data.storageType);
         }
+        if (data.expirationDate) {
+            fields.push(`expire_at = $${idx++}`);
+            values.push(new Date(data.expirationDate));
+        }
+        if (data.createdAt) {
+            fields.push(`created_at = $${idx++}`);
+            values.push(new Date(data.createdAt));
+        }
         if (fields.length === 0)
             return null;
         values.push(id);
@@ -71,7 +122,7 @@ class IngredientService {
       RETURNING *
     `;
         const res = await (0, database_1.query)(sql, values);
-        return res.rows[0];
+        return toResponse(res.rows[0]);
     }
     // 软删除
     static async delete(id) {

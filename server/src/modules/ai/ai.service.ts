@@ -4,10 +4,17 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 export class AIService {
-  private static client = new OpenAI({
-    apiKey: process.env.DASHSCOPE_API_KEY,
-    baseURL: "https://dashscope.aliyuncs.com/compatible-mode/v1"
-  });
+  private static _client: OpenAI;
+
+  private static get client(): OpenAI {
+    if (!this._client) {
+      this._client = new OpenAI({
+        apiKey: process.env.DASHSCOPE_API_KEY,
+        baseURL: "https://dashscope.aliyuncs.com/compatible-mode/v1"
+      });
+    }
+    return this._client;
+  }
 
   /**
    * 识别图片中的食材

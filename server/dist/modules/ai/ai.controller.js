@@ -20,11 +20,11 @@ class AIController {
     }
     static async suggestRecipe(req, res) {
         try {
-            const { ingredients } = req.body;
+            const { ingredients, cookingMethod } = req.body;
             if (!ingredients || !Array.isArray(ingredients) || ingredients.length === 0) {
                 return res.status(400).json({ error: 'ingredients array is required' });
             }
-            const result = await ai_service_1.AIService.suggestRecipe(ingredients);
+            const result = await ai_service_1.AIService.suggestRecipe(ingredients, cookingMethod);
             res.json(result);
         }
         catch (error) {

@@ -221,6 +221,7 @@
 				DEVELOPMENT_TEAM = SE37QF3D46;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = FridgeMind/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "留鲜";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UIMainStoryboardFile = Main;
@@ -251,6 +252,7 @@
 				DEVELOPMENT_TEAM = SE37QF3D46;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = FridgeMind/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "留鲜";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UIMainStoryboardFile = Main;
