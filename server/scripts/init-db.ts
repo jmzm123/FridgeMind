@@ -1,8 +1,6 @@
 import pool from '../src/config/database';
 
 const createTablesSQL = `
--- Enable UUID extension
-CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
 -- 1. Users
 CREATE TABLE IF NOT EXISTS users (
