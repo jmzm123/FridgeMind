@@ -276,7 +276,10 @@
 }
 
 - (void)handleRefresh:(UIRefreshControl *)sender {
-    [[SyncManager sharedManager] sync];
+    // Sync disabled
+    // [[SyncManager sharedManager] sync];
+    [self loadData];
+    [sender endRefreshing];
 }
 
 - (void)addTapped {
@@ -285,7 +288,7 @@
     vc.familyId = [NetworkManager sharedManager].currentFamilyId;
     vc.completionBlock = ^{
         [self loadData];
-        [[SyncManager sharedManager] sync];
+        // [[SyncManager sharedManager] sync];
     };
     [self.navigationController pushViewController:vc animated:YES];
 }

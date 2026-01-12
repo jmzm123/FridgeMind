@@ -35,23 +35,26 @@ NSString * const kSyncDidFinishNotification = @"kSyncDidFinishNotification";
 
 - (void)startMonitoring {
     // Listen for app active
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(sync) name:UIApplicationDidBecomeActiveNotification object:nil];
+    // [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(sync) name:UIApplicationDidBecomeActiveNotification object:nil];
     
     // Network reachability
-    [[AFNetworkReachabilityManager sharedManager] startMonitoring];
-    [[AFNetworkReachabilityManager sharedManager] setReachabilityStatusChangeBlock:^(AFNetworkReachabilityStatus status) {
-        if (status == AFNetworkReachabilityStatusReachableViaWiFi || status == AFNetworkReachabilityStatusReachableViaWWAN) {
-            NSLog(@"Network reachable.");
-            // Only sync if there are pending local changes to save resources
-            if ([[DBManager sharedManager] fetchIngredientsForSync].count > 0) {
-                 NSLog(@"Pending changes found, triggering sync...");
-                 [self sync];
-            }
-        }
-    }];
+    // [[AFNetworkReachabilityManager sharedManager] startMonitoring];
+    // [[AFNetworkReachabilityManager sharedManager] setReachabilityStatusChangeBlock:^(AFNetworkReachabilityStatus status) {
+    //     if (status == AFNetworkReachabilityStatusReachableViaWiFi || status == AFNetworkReachabilityStatusReachableViaWWAN) {
+    //         NSLog(@"Network reachable.");
+    //         // Only sync if there are pending local changes to save resources
+    //         if ([[DBManager sharedManager] fetchIngredientsForSync].count > 0) {
+    //              NSLog(@"Pending changes found, triggering sync...");
+    //              [self sync];
+    //         }
+    //     }
+    // }];
 }
 
 - (void)sync {
+    // Sync disabled for local-only mode
+    return;
+    
     @synchronized (self) {
         if (self.isSyncing) return;
         self.isSyncing = YES;

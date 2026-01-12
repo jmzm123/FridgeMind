@@ -297,7 +297,7 @@
     }
     
     [[DBManager sharedManager] saveIngredient:ing];
-    [[SyncManager sharedManager] sync]; // Trigger sync
+    // [[SyncManager sharedManager] sync]; // Trigger sync
     
     if (self.completionBlock) {
         self.completionBlock();

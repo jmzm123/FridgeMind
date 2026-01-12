@@ -73,8 +73,8 @@
     
     self.window.rootViewController = tabBarVC;
     
-    // Trigger sync on launch/entry
-    [[SyncManager sharedManager] sync];
+    // Trigger sync on launch/entry - Disabled for local mode
+    // [[SyncManager sharedManager] sync];
 }
 
 
