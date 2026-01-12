@@ -1,0 +1,60 @@
+2026-01-10 16:21:58 +08:00: Loading .env from: /www/wwwroot/FridgeMind/server/.env
+2026-01-10 16:21:58 +08:00: [dotenv@17.2.3] injecting env (8) from .env -- tip: ⚙️  specify custom .env file path with { path: '/custom/path/.env' }
+2026-01-10 16:21:58 +08:00: [dotenv@17.2.3] injecting env (0) from .env -- tip: 🔑 add access controls to secrets: https://dotenvx.com/ops
+2026-01-10 16:21:58 +08:00: [dotenv@17.2.3] injecting env (0) from .env -- tip: ⚙️  specify custom .env file path with { path: '/custom/path/.env' }
+2026-01-10 16:21:58 +08:00: [dotenv@17.2.3] injecting env (0) from .env -- tip: ⚙️  specify custom .env file path with { path: '/custom/path/.env' }
+2026-01-10 16:21:58 +08:00: Server is running on port 3000
+2026-01-10 16:28:40 +08:00: [0mGET /health [32m200[0m 2.963 ms - 54[0m
+2026-01-10 16:29:05 +08:00: [0mPOST /api/v1/auth/verify-code [33m401[0m 29.214 ms - 35[0m
+2026-01-10 16:29:07 +08:00: [DEV] Code for test_user@example.com: 123456
+2026-01-10 16:29:07 +08:00: [0mPOST /api/v1/auth/send-code [32m200[0m 4.875 ms - 62[0m
+2026-01-10 16:29:09 +08:00: [0mPOST /api/v1/auth/verify-code [32m200[0m 8.415 ms - 372[0m
+2026-01-10 16:29:09 +08:00: [0mGET /api/v1/families [32m200[0m 5.531 ms - 169[0m
+2026-01-10 16:29:12 +08:00: [0mGET /api/v1/families/aee3bec3-2b1e-40e8-a11c-2657f3c1a8a3/ingredients [32m200[0m 5.104 ms - 2[0m
+2026-01-10 16:29:12 +08:00: [0mGET /api/v1/families/aee3bec3-2b1e-40e8-a11c-2657f3c1a8a3/dishes [32m200[0m 4.299 ms - 2[0m
+2026-01-10 16:29:18 +08:00: [0mGET /api/v1/families/aee3bec3-2b1e-40e8-a11c-2657f3c1a8a3/ingredients [32m200[0m 3.599 ms - 2[0m
+2026-01-10 16:29:18 +08:00: [0mGET /api/v1/families/aee3bec3-2b1e-40e8-a11c-2657f3c1a8a3/dishes [32m200[0m 4.117 ms - 2[0m
+2026-01-10 16:29:20 +08:00: [0mGET /api/v1/families/aee3bec3-2b1e-40e8-a11c-2657f3c1a8a3/dishes [32m200[0m 3.676 ms - 2[0m
+2026-01-10 16:29:20 +08:00: [0mGET /api/v1/families/aee3bec3-2b1e-40e8-a11c-2657f3c1a8a3/dishes [32m200[0m 4.165 ms - 2[0m
+2026-01-10 16:29:45 +08:00: Received identify request. Image URL length: 22563
+2026-01-10 16:29:45 +08:00: Image URL prefix: data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAMgAyAAD
+2026-01-10 16:29:46 +08:00: [0mPOST /api/v1/ai/identify-ingredients [32m200[0m 1076.371 ms - 66[0m
+2026-01-10 16:29:53 +08:00: [0mPOST /api/v1/families/aee3bec3-2b1e-40e8-a11c-2657f3c1a8a3/ingredients [33m400[0m 3.361 ms - 41[0m
+2026-01-10 16:29:53 +08:00: [0mGET /api/v1/families/aee3bec3-2b1e-40e8-a11c-2657f3c1a8a3/ingredients?updated_since=2026-01-09T16%3A38%3A27Z [32m200[0m 8.162 ms - 2[0m
+2026-01-10 16:29:59 +08:00: [0mGET /api/v1/families/aee3bec3-2b1e-40e8-a11c-2657f3c1a8a3/dishes [32m200[0m 4.210 ms - 2[0m
+2026-01-10 16:34:46 +08:00: [DEV] Code for test_user@example.com: 123456
+2026-01-10 16:34:46 +08:00: [0mPOST /api/v1/auth/send-code [32m200[0m 7.719 ms - 62[0m
+2026-01-10 16:34:48 +08:00: [0mPOST /api/v1/auth/verify-code [32m200[0m 5.226 ms - 372[0m
+2026-01-10 16:34:48 +08:00: [0mGET /api/v1/families [32m200[0m 3.982 ms - 169[0m
+2026-01-10 16:34:49 +08:00: [0mGET /api/v1/families/aee3bec3-2b1e-40e8-a11c-2657f3c1a8a3/ingredients [32m200[0m 4.399 ms - 2[0m
+2026-01-10 16:34:49 +08:00: [0mGET /api/v1/families/aee3bec3-2b1e-40e8-a11c-2657f3c1a8a3/dishes [32m200[0m 3.687 ms - 2[0m
+2026-01-10 16:34:53 +08:00: [0mGET /api/v1/families/aee3bec3-2b1e-40e8-a11c-2657f3c1a8a3/dishes [32m200[0m 6.814 ms - 2[0m
+2026-01-10 16:34:53 +08:00: [0mGET /api/v1/families/aee3bec3-2b1e-40e8-a11c-2657f3c1a8a3/dishes [32m200[0m 9.169 ms - 2[0m
+2026-01-10 16:34:58 +08:00: [0mGET /api/v1/families/aee3bec3-2b1e-40e8-a11c-2657f3c1a8a3/ingredients [32m200[0m 4.727 ms - 2[0m
+2026-01-10 16:35:00 +08:00: [0mGET /api/v1/families/aee3bec3-2b1e-40e8-a11c-2657f3c1a8a3/dishes [32m200[0m 3.772 ms - 2[0m
+2026-01-10 16:35:54 +08:00: [0mPOST /api/v1/families/aee3bec3-2b1e-40e8-a11c-2657f3c1a8a3/ingredients [33m400[0m 3.130 ms - 41[0m
+2026-01-10 16:35:54 +08:00: [0mGET /api/v1/families/aee3bec3-2b1e-40e8-a11c-2657f3c1a8a3/ingredients [32m200[0m 8.535 ms - 2[0m
+2026-01-10 16:36:04 +08:00: [0mPOST /api/v1/families/aee3bec3-2b1e-40e8-a11c-2657f3c1a8a3/ingredients [33m400[0m 4.046 ms - 41[0m
+2026-01-10 16:36:04 +08:00: [0mGET /api/v1/families/aee3bec3-2b1e-40e8-a11c-2657f3c1a8a3/ingredients?updated_since=2026-01-10T08%3A35%3A54Z [32m200[0m 9.925 ms - 2[0m
+2026-01-10 16:36:05 +08:00: [0mGET /api/v1/families/aee3bec3-2b1e-40e8-a11c-2657f3c1a8a3/dishes [32m200[0m 4.403 ms - 2[0m
+2026-01-10 16:36:07 +08:00: [0mGET /api/v1/families/aee3bec3-2b1e-40e8-a11c-2657f3c1a8a3/ingredients [32m200[0m 4.717 ms - 2[0m
+2026-01-10 16:36:12 +08:00: [0mGET /api/v1/families/aee3bec3-2b1e-40e8-a11c-2657f3c1a8a3/dishes [32m200[0m 4.096 ms - 2[0m
+2026-01-10 16:36:24 +08:00: Received identify request. Image URL length: 202919
+2026-01-10 16:36:24 +08:00: Image URL prefix: data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAASABIAAD
+2026-01-10 16:36:27 +08:00: [0mPOST /api/v1/ai/identify-ingredients [32m200[0m 2538.758 ms - 205[0m
+2026-01-10 16:36:30 +08:00: [0mPOST /api/v1/families/aee3bec3-2b1e-40e8-a11c-2657f3c1a8a3/ingredients [33m400[0m 2.972 ms - 41[0m
+2026-01-10 16:36:30 +08:00: [0mPOST /api/v1/families/aee3bec3-2b1e-40e8-a11c-2657f3c1a8a3/ingredients [33m400[0m 2.772 ms - 41[0m
+2026-01-10 16:36:30 +08:00: [0mGET /api/v1/families/aee3bec3-2b1e-40e8-a11c-2657f3c1a8a3/ingredients?updated_since=2026-01-10T08%3A36%3A04Z [32m200[0m 7.754 ms - 2[0m
+2026-01-10 16:36:34 +08:00: [0mGET /api/v1/families/aee3bec3-2b1e-40e8-a11c-2657f3c1a8a3/dishes [32m200[0m 3.743 ms - 2[0m
+2026-01-10 16:36:36 +08:00: [0mGET /api/v1/families/aee3bec3-2b1e-40e8-a11c-2657f3c1a8a3/ingredients [32m200[0m 4.469 ms - 2[0m
+2026-01-10 16:36:44 +08:00: [0mGET /api/v1/families/aee3bec3-2b1e-40e8-a11c-2657f3c1a8a3/dishes [32m200[0m 4.638 ms - 2[0m
+2026-01-10 16:36:56 +08:00: [0mPOST /api/v1/ai/suggest-recipe [32m200[0m 6448.132 ms - 736[0m
+2026-01-10 16:37:23 +08:00: [0mGET /api/v1/families/aee3bec3-2b1e-40e8-a11c-2657f3c1a8a3/dishes [32m200[0m 7.817 ms - 2[0m
+2026-01-10 16:37:23 +08:00: [0mGET /api/v1/families/aee3bec3-2b1e-40e8-a11c-2657f3c1a8a3/ingredients [32m200[0m 3.895 ms - 2[0m
+2026-01-10 16:37:31 +08:00: [0mGET /api/v1/families/aee3bec3-2b1e-40e8-a11c-2657f3c1a8a3/dishes [32m200[0m 6.861 ms - 2[0m
+2026-01-10 16:37:31 +08:00: [0mGET /api/v1/families/aee3bec3-2b1e-40e8-a11c-2657f3c1a8a3/dishes [32m200[0m 8.481 ms - 2[0m
+2026-01-10 16:37:39 +08:00: [0mGET /api/v1/families/aee3bec3-2b1e-40e8-a11c-2657f3c1a8a3/dishes [32m200[0m 3.289 ms - 2[0m
+2026-01-10 16:37:50 +08:00: [0mGET /api/v1/families/aee3bec3-2b1e-40e8-a11c-2657f3c1a8a3/ingredients [32m200[0m 8.311 ms - 2[0m
+2026-01-10 16:37:56 +08:00: [0mGET /api/v1/families/aee3bec3-2b1e-40e8-a11c-2657f3c1a8a3/dishes [32m200[0m 3.819 ms - 2[0m
+2026-01-10 16:37:57 +08:00: [0mGET /api/v1/families/aee3bec3-2b1e-40e8-a11c-2657f3c1a8a3/ingredients [32m200[0m 6.473 ms - 2[0m
+2026-01-10 16:37:57 +08:00: [0mGET /api/v1/families/aee3bec3-2b1e-40e8-a11c-2657f3c1a8a3/dishes [32m200[0m 8.648 ms - 2[0m
