@@ -3,7 +3,7 @@
 NS_ASSUME_NONNULL_BEGIN
 
 @interface Ingredient : NSObject
-@property (nonatomic, copy) NSString *localId; // UUID
+@property (nonatomic, copy) NSString *localId; // UUID 本地创建时立即生成（UUID）不依赖网络
 @property (nonatomic, copy) NSString *_id; // server_id
 @property (nonatomic, copy) NSString *name;
 @property (nonatomic, assign) double quantity;

@@ -18,7 +18,7 @@
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-    self.title = @"菜单";
+    self.title = @"做饭";
     self.view.backgroundColor = [UIColor whiteColor];
     self.selectedDishIds = [NSMutableArray array];
     
