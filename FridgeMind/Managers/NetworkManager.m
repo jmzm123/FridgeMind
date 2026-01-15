@@ -209,7 +209,7 @@ static NSString * const kCurrentFamilyIdKey = @"kCurrentFamilyIdKey";
                 @"role": @"user",
                 @"content": @[
                     @{@"type": @"image_url", @"image_url": @{@"url": dataURI}},
-                    @{@"type": @"text", @"text": @"请识别图中的食材。请只返回一个JSON数组，格式为：[{ \"name\": \"食材名称\", \"quantity\": 数量(数字), \"unit\": \"单位\", \"storageType\": \"chilled\" | \"frozen\" | \"pantry\" }]. 如果无法确定数量，默认为1。如果无法确定单位，默认为'个'或'份'。storageType请只返回 chilled(冷藏), frozen(冷冻), pantry(常温) 三者之一。请不要返回任何Markdown格式或额外文字，只返回纯JSON字符串。"}
+                    @{@"type": @"text", @"text": @"请识别图中的内容。如果是实物图，请识别所有可见的食材；如果是购物小票或清单，请提取列表中的所有食材。请返回一个JSON数组，格式为：[{ \"name\": \"食材名称\", \"quantity\": 数量(数字), \"unit\": \"单位\", \"storageType\": \"chilled\" | \"frozen\" | \"pantry\" }]. 如果无法确定数量，默认为1。如果无法确定单位，默认为'个'或'份'。storageType请只返回 chilled(冷藏), frozen(冷冻), pantry(常温) 三者之一。请不要返回任何Markdown格式或额外文字，只返回纯JSON字符串。"}
                 ]
             }
         ]

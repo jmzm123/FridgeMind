@@ -81,10 +81,23 @@
     [self.cameraButton addTarget:self action:@selector(cameraTapped) forControlEvents:UIControlEventTouchUpInside];
     [self.view addSubview:self.cameraButton];
     
+    // Camera Hint
+    UILabel *cameraHint = [[UILabel alloc] init];
+    cameraHint.text = @"拍食材/小票";
+    cameraHint.font = [UIFont systemFontOfSize:10];
+    cameraHint.textColor = [UIColor darkGrayColor];
+    cameraHint.textAlignment = NSTextAlignmentCenter;
+    [self.view addSubview:cameraHint];
+    
     [self.cameraButton mas_makeConstraints:^(MASConstraintMaker *make) {
         make.top.equalTo(self.view.mas_safeAreaLayoutGuideTop).offset(20);
         make.right.equalTo(self.view).offset(-20);
         make.width.height.mas_equalTo(44);
+    }];
+    
+    [cameraHint mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.top.equalTo(self.cameraButton.mas_bottom).offset(2);
+        make.centerX.equalTo(self.cameraButton);
     }];
 
     // Name
@@ -220,7 +233,7 @@
 }
 
 - (void)cameraTapped {
-    UIAlertController *actionSheet = [UIAlertController alertControllerWithTitle:@"选择图片来源" message:nil preferredStyle:UIAlertControllerStyleActionSheet];
+    UIAlertController *actionSheet = [UIAlertController alertControllerWithTitle:@"选择图片来源" message:@"把食材平铺到平面或购物小票，可自动批量识别" preferredStyle:UIAlertControllerStyleActionSheet];
     
     if ([UIImagePickerController isSourceTypeAvailable:UIImagePickerControllerSourceTypeCamera]) {
         [actionSheet addAction:[UIAlertAction actionWithTitle:@"相机" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
@@ -260,7 +273,7 @@
     NSString *base64 = [imageData base64EncodedStringWithOptions:0];
     
     // Show Loading
-    UIAlertController *loading = [UIAlertController alertControllerWithTitle:@"识别中..." message:@"AI正在查看你的食材..." preferredStyle:UIAlertControllerStyleAlert];
+    UIAlertController *loading = [UIAlertController alertControllerWithTitle:@"识别中..." message:@"AI正在分析食材或小票..." preferredStyle:UIAlertControllerStyleAlert];
     [self presentViewController:loading animated:YES completion:nil];
     
     [[NetworkManager sharedManager] identifyIngredientsWithImageBase64:base64 success:^(id  _Nullable response) {
@@ -268,18 +281,36 @@
             // Parse response: array of ingredients
             NSArray *items = response;
             if ([items isKindOfClass:[NSArray class]] && items.count > 0) {
-                NSDictionary *item = items[0]; // Take first one for now
-                self.nameField.text = item[@"name"];
-                self.quantityField.text = [NSString stringWithFormat:@"%@", item[@"quantity"] ?: @1];
-                self.unitField.text = item[@"unit"];
-                
-                NSString *storage = item[@"storageType"];
-                if ([storage isEqualToString:@"frozen"]) {
-                    self.storageControl.selectedSegmentIndex = 1;
-                } else if ([storage isEqualToString:@"pantry"]) {
-                    self.storageControl.selectedSegmentIndex = 2;
+                // If multiple items, add all to pending list directly
+                if (items.count > 1 || self.pendingIngredients.count > 0) {
+                    for (NSDictionary *itemDict in items) {
+                        Ingredient *ing = [self createIngredientFromDictionary:itemDict];
+                        if (ing) {
+                            [self.pendingIngredients addObject:ing];
+                        }
+                    }
+                    [self.tableView reloadData];
+                    
+                    NSString *msg = [NSString stringWithFormat:@"已识别 %lu 个食材并加入待放入列表", (unsigned long)items.count];
+                    UIAlertController *successAlert = [UIAlertController alertControllerWithTitle:@"识别成功" message:msg preferredStyle:UIAlertControllerStyleAlert];
+                    [successAlert addAction:[UIAlertAction actionWithTitle:@"好" style:UIAlertActionStyleDefault handler:nil]];
+                    [self presentViewController:successAlert animated:YES completion:nil];
+                    
                 } else {
-                    self.storageControl.selectedSegmentIndex = 0;
+                    // If only 1 item and list is empty, fill the input fields for review (Single Add flow)
+                    NSDictionary *item = items[0];
+                    self.nameField.text = item[@"name"];
+                    self.quantityField.text = [NSString stringWithFormat:@"%@", item[@"quantity"] ?: @1];
+                    self.unitField.text = item[@"unit"];
+                    
+                    NSString *storage = item[@"storageType"];
+                    if ([storage isEqualToString:@"frozen"]) {
+                        self.storageControl.selectedSegmentIndex = 1;
+                    } else if ([storage isEqualToString:@"pantry"]) {
+                        self.storageControl.selectedSegmentIndex = 2;
+                    } else {
+                        self.storageControl.selectedSegmentIndex = 0;
+                    }
                 }
             } else {
                 [self showError:[NSError errorWithDomain:@"com.fridgemind" code:404 userInfo:@{NSLocalizedDescriptionKey: @"未识别出食材。"}]];
@@ -290,6 +321,37 @@
             [self showError:error];
         }];
     }];
+}
+
+- (Ingredient *)createIngredientFromDictionary:(NSDictionary *)dict {
+    NSString *name = dict[@"name"];
+    if (!name || name.length == 0) return nil;
+    
+    Ingredient *ing = [[Ingredient alloc] init];
+    ing.name = name;
+    ing.quantity = [dict[@"quantity"] doubleValue];
+    ing.unit = dict[@"unit"] ?: @"";
+    
+    // Default dates
+    NSDateFormatter *isoFormatter = [[NSDateFormatter alloc] init];
+    isoFormatter.dateFormat = @"yyyy-MM-dd'T'HH:mm:ss.SSSZ";
+    ing.createdAt = [isoFormatter stringFromDate:[NSDate date]];
+    ing.expirationDate = [isoFormatter stringFromDate:[NSDate dateWithTimeIntervalSinceNow:7*24*3600]];
+    ing.updatedAt = [NSDate date];
+    ing.syncStatus = @"pending";
+    ing.deleted = NO;
+    ing.localId = [[NSUUID UUID] UUIDString];
+    
+    NSString *storage = dict[@"storageType"];
+    if ([storage isEqualToString:@"frozen"]) {
+        ing.storageType = @"frozen";
+    } else if ([storage isEqualToString:@"pantry"]) {
+        ing.storageType = @"pantry";
+    } else {
+        ing.storageType = @"chilled";
+    }
+    
+    return ing;
 }
 
 - (UIImage *)resizeImage:(UIImage *)image toMaxDimension:(CGFloat)maxDimension {
