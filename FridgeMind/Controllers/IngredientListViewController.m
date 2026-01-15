@@ -4,6 +4,7 @@
 #import <YYModel/YYModel.h>
 #import <SDWebImage/SDWebImage.h>
 #import "AddIngredientViewController.h"
+#import "IngredientDetailViewController.h"
 #import "RecipeSuggestionViewController.h"
 #import "Ingredient.h"
 #import "DBManager.h"
@@ -355,20 +356,37 @@
         make.top.equalTo(cell.contentView).offset(12);
         make.right.equalTo(cell.contentView).offset(-16);
     }];
+    
+    // Status Label (Right side, below date)
+    UILabel *statusLabel = [cell.contentView viewWithTag:1002];
+    if (!statusLabel) {
+        statusLabel = [[UILabel alloc] init];
+        statusLabel.tag = 1002;
+        statusLabel.font = [UIFont boldSystemFontOfSize:10];
+        statusLabel.textAlignment = NSTextAlignmentRight;
+        [cell.contentView addSubview:statusLabel];
+    }
+    
+    [statusLabel mas_remakeConstraints:^(MASConstraintMaker *make) {
+        make.top.equalTo(dateLabel.mas_bottom).offset(2);
+        make.right.equalTo(dateLabel);
+    }];
 
-    // Progress Bar (Right side, below date)
+    // Progress Bar (Right side, below status)
     UIProgressView *progressView = [cell.contentView viewWithTag:999];
     if (!progressView) {
         progressView = [[UIProgressView alloc] initWithProgressViewStyle:UIProgressViewStyleDefault];
         progressView.tag = 999;
+        progressView.layer.cornerRadius = 3;
+        progressView.clipsToBounds = YES;
         [cell.contentView addSubview:progressView];
     }
     
     [progressView mas_remakeConstraints:^(MASConstraintMaker *make) {
-        make.top.equalTo(dateLabel.mas_bottom).offset(5);
+        make.top.equalTo(statusLabel.mas_bottom).offset(5);
         make.right.equalTo(dateLabel);
         make.width.mas_equalTo(100);
-        make.height.mas_equalTo(2);
+        make.height.mas_equalTo(6);
     }];
     
     // Calculate progress
@@ -398,10 +416,61 @@
     
     // Display Date Range
     NSDateFormatter *displayFormatter = [[NSDateFormatter alloc] init];
-    displayFormatter.dateFormat = @"MM-dd HH:mm";
+    displayFormatter.dateFormat = @"yyyy-MM-dd";
     NSString *createdStr = created ? [displayFormatter stringFromDate:created] : @"--";
     NSString *expiredStr = expired ? [displayFormatter stringFromDate:expired] : @"--";
     dateLabel.text = [NSString stringWithFormat:@"%@ ~ %@", createdStr, expiredStr];
+    
+    // Display Status Text
+    if (created && expired) {
+        NSDate *now = [NSDate date];
+        NSCalendar *calendar = [NSCalendar currentCalendar];
+        
+        // Calculate days stored
+        NSDateComponents *storedComponents = [calendar components:NSCalendarUnitDay fromDate:created toDate:now options:0];
+        NSInteger daysStored = storedComponents.day;
+        
+        // Calculate days remaining/expired
+        NSDateComponents *expireComponents = [calendar components:NSCalendarUnitDay fromDate:now toDate:expired options:0];
+        NSInteger daysRemaining = expireComponents.day;
+        
+        if ([now compare:expired] == NSOrderedDescending) {
+            // Expired
+            NSDateComponents *diff = [calendar components:NSCalendarUnitDay|NSCalendarUnitHour|NSCalendarUnitMinute fromDate:expired toDate:now options:0];
+            
+            if (diff.day >= 1) {
+                if (diff.hour > 0) {
+                    statusLabel.text = [NSString stringWithFormat:@"已过期 %ld 天 %ld 小时", (long)diff.day, (long)diff.hour];
+                } else {
+                    statusLabel.text = [NSString stringWithFormat:@"已过期 %ld 天", (long)diff.day];
+                }
+            } else if (diff.hour >= 1) {
+                statusLabel.text = [NSString stringWithFormat:@"已过期 %ld 小时", (long)diff.hour];
+            } else {
+                statusLabel.text = [NSString stringWithFormat:@"已过期 %ld 分钟", (long)diff.minute];
+            }
+            statusLabel.textColor = [UIColor redColor];
+        } else {
+            // Not Expired
+            NSDateComponents *diff = [calendar components:NSCalendarUnitDay|NSCalendarUnitHour|NSCalendarUnitMinute fromDate:created toDate:now options:0];
+            
+            if (diff.day >= 1) {
+                if (diff.hour > 0) {
+                     statusLabel.text = [NSString stringWithFormat:@"已放 %ld 天 %ld 小时", (long)diff.day, (long)diff.hour];
+                } else {
+                     statusLabel.text = [NSString stringWithFormat:@"已放 %ld 天", (long)diff.day];
+                }
+            } else if (diff.hour >= 1) {
+                statusLabel.text = [NSString stringWithFormat:@"已放 %ld 小时", (long)diff.hour];
+            } else {
+                statusLabel.text = [NSString stringWithFormat:@"已放 %ld 分钟", (long)diff.minute];
+            }
+            statusLabel.textColor = [UIColor grayColor];
+        }
+    } else {
+        statusLabel.text = @"--";
+        statusLabel.textColor = [UIColor grayColor];
+    }
     
     // Clean up detail text (remove old date info)
     cell.detailTextLabel.text = [NSString stringWithFormat:@"%.1f %@", ingredient.quantity, ingredient.unit ?: @""];
@@ -418,12 +487,18 @@
             progressView.progress = progress;
             progressView.hidden = NO;
             
-            if (progress > 0.9) {
+            if ([[NSDate date] compare:expired] == NSOrderedDescending) {
+                // Expired visual
                 progressView.progressTintColor = [UIColor redColor];
-            } else if (progress > 0.7) {
-                progressView.progressTintColor = [UIColor orangeColor];
+                progressView.progress = 1.0;
             } else {
-                progressView.progressTintColor = [UIColor greenColor];
+                if (progress > 0.9) {
+                    progressView.progressTintColor = [UIColor redColor];
+                } else if (progress > 0.7) {
+                    progressView.progressTintColor = [UIColor orangeColor];
+                } else {
+                    progressView.progressTintColor = [UIColor greenColor];
+                }
             }
         } else {
             progressView.hidden = YES;
@@ -442,12 +517,9 @@
     NSArray *items = self.groupedIngredients[sectionTitle];
     Ingredient *ingredient = items[indexPath.row];
     
-    AddIngredientViewController *vc = [[AddIngredientViewController alloc] init];
+    IngredientDetailViewController *vc = [[IngredientDetailViewController alloc] init];
     vc.familyId = self.familyId;
-    vc.existingIngredient = ingredient;
-    vc.completionBlock = ^{
-        [self loadData];
-    };
+    vc.ingredient = ingredient;
     [self.navigationController pushViewController:vc animated:YES];
 }
 
