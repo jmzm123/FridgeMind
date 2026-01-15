@@ -5,7 +5,7 @@
 #import "SyncManager.h"
 #import "Ingredient.h"
 
-@interface AddIngredientViewController () <UINavigationControllerDelegate, UIImagePickerControllerDelegate>
+@interface AddIngredientViewController () <UINavigationControllerDelegate, UIImagePickerControllerDelegate, UITableViewDataSource, UITableViewDelegate>
 @property (nonatomic, strong) UITextField *nameField;
 @property (nonatomic, strong) UITextField *quantityField;
 @property (nonatomic, strong) UITextField *unitField;
@@ -15,6 +15,11 @@
 @property (nonatomic, strong) UILabel *expirationLabel;
 @property (nonatomic, strong) UILabel *putInLabel;
 @property (nonatomic, strong) UIButton *cameraButton;
+
+// Batch Add UI
+@property (nonatomic, strong) UIButton *addButton;
+@property (nonatomic, strong) UITableView *tableView;
+@property (nonatomic, strong) NSMutableArray<Ingredient *> *pendingIngredients;
 @end
 
 @implementation AddIngredientViewController
@@ -23,6 +28,8 @@
     [super viewDidLoad];
     self.title = self.existingIngredient ? @"编辑食材" : @"添加食材";
     self.view.backgroundColor = [UIColor whiteColor];
+    
+    self.pendingIngredients = [NSMutableArray array];
     
     [self setupUI];
     
@@ -58,9 +65,13 @@
              NSDate *d = [f dateFromString:self.existingIngredient.createdAt];
              if (d) self.putInDatePicker.date = d;
         }
+        
+        // Single Edit Mode: "Save"
+        self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:@"保存" style:UIBarButtonItemStyleDone target:self action:@selector(saveTapped)];
+    } else {
+        // Batch Add Mode: "Put In Fridge"
+        self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:@"全部放入" style:UIBarButtonItemStyleDone target:self action:@selector(finishTapped)];
     }
-    
-    self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:@"保存" style:UIBarButtonItemStyleDone target:self action:@selector(saveTapped)];
 }
 
 - (void)setupUI {
@@ -167,6 +178,38 @@
         make.centerY.equalTo(self.expirationLabel);
         make.right.equalTo(self.nameField);
     }];
+    
+    // Batch UI Elements
+    if (!self.existingIngredient) {
+        self.addButton = [UIButton buttonWithType:UIButtonTypeSystem];
+        [self.addButton setTitle:@"添加 / 暂存" forState:UIControlStateNormal];
+        self.addButton.titleLabel.font = [UIFont boldSystemFontOfSize:18];
+        [self.addButton addTarget:self action:@selector(addTapped) forControlEvents:UIControlEventTouchUpInside];
+        
+        // Style the button
+        self.addButton.backgroundColor = [UIColor systemBlueColor];
+        [self.addButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+        self.addButton.layer.cornerRadius = 8;
+        
+        [self.view addSubview:self.addButton];
+        
+        self.tableView = [[UITableView alloc] init];
+        self.tableView.dataSource = self;
+        self.tableView.delegate = self;
+        [self.view addSubview:self.tableView];
+        
+        [self.addButton mas_makeConstraints:^(MASConstraintMaker *make) {
+            make.top.equalTo(self.expirationLabel.mas_bottom).offset(25);
+            make.centerX.equalTo(self.view);
+            make.width.mas_equalTo(200);
+            make.height.mas_equalTo(44);
+        }];
+        
+        [self.tableView mas_makeConstraints:^(MASConstraintMaker *make) {
+            make.top.equalTo(self.addButton.mas_bottom).offset(15);
+            make.left.right.bottom.equalTo(self.view);
+        }];
+    }
 }
 
 - (UITextField *)createTextField:(NSString *)placeholder {
@@ -229,6 +272,15 @@
                 self.nameField.text = item[@"name"];
                 self.quantityField.text = [NSString stringWithFormat:@"%@", item[@"quantity"] ?: @1];
                 self.unitField.text = item[@"unit"];
+                
+                NSString *storage = item[@"storageType"];
+                if ([storage isEqualToString:@"frozen"]) {
+                    self.storageControl.selectedSegmentIndex = 1;
+                } else if ([storage isEqualToString:@"pantry"]) {
+                    self.storageControl.selectedSegmentIndex = 2;
+                } else {
+                    self.storageControl.selectedSegmentIndex = 0;
+                }
             } else {
                 [self showError:[NSError errorWithDomain:@"com.fridgemind" code:404 userInfo:@{NSLocalizedDescriptionKey: @"未识别出食材。"}]];
             }
@@ -261,9 +313,64 @@
     return newImage;
 }
 
-- (void)saveTapped {
+- (void)addTapped {
+    Ingredient *ing = [self createIngredientFromInput];
+    if (!ing) return;
+    
+    [self.pendingIngredients addObject:ing];
+    [self.tableView reloadData];
+    
+    // Clear inputs
+    self.nameField.text = @"";
+    self.quantityField.text = @"";
+    self.unitField.text = @"";
+    self.storageControl.selectedSegmentIndex = 0;
+    self.putInDatePicker.date = [NSDate date];
+    self.expirationDatePicker.date = [NSDate dateWithTimeIntervalSinceNow:7*24*3600];
+    
+    [self.nameField becomeFirstResponder];
+}
+
+- (void)finishTapped {
+    // If pending list is empty, but inputs are filled, treat as single add
+    if (self.pendingIngredients.count == 0) {
+        if (self.nameField.text.length > 0) {
+            Ingredient *ing = [self createIngredientFromInput];
+            if (ing) {
+                [self.pendingIngredients addObject:ing];
+            }
+        }
+    } else {
+        // If pending list has items, and inputs are also filled, ask or auto-add?
+        // Let's auto-add if valid, otherwise ignore incomplete input
+        if (self.nameField.text.length > 0) {
+            Ingredient *ing = [self createIngredientFromInput];
+            if (ing) {
+                 [self.pendingIngredients addObject:ing];
+            }
+        }
+    }
+    
+    if (self.pendingIngredients.count == 0) {
+        // Nothing to save
+        [self.navigationController popViewControllerAnimated:YES];
+        return;
+    }
+    
+    // Batch Save
+    for (Ingredient *ing in self.pendingIngredients) {
+        [[DBManager sharedManager] saveIngredient:ing];
+    }
+    
+    if (self.completionBlock) {
+        self.completionBlock();
+    }
+    [self.navigationController popViewControllerAnimated:YES];
+}
+
+- (Ingredient *)createIngredientFromInput {
     NSString *name = self.nameField.text;
-    if (name.length == 0) return;
+    if (name.length == 0) return nil;
     
     double quantity = [self.quantityField.text doubleValue];
     NSString *unit = self.unitField.text;
@@ -296,13 +403,55 @@
         ing.localId = [[NSUUID UUID] UUIDString];
     }
     
+    return ing;
+}
+
+- (void)saveTapped {
+    Ingredient *ing = [self createIngredientFromInput];
+    if (!ing) return;
+    
     [[DBManager sharedManager] saveIngredient:ing];
-    // [[SyncManager sharedManager] sync]; // Trigger sync
     
     if (self.completionBlock) {
         self.completionBlock();
     }
     [self.navigationController popViewControllerAnimated:YES];
+}
+
+#pragma mark - UITableViewDataSource
+
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
+    return self.pendingIngredients.count;
+}
+
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
+    static NSString *cellId = @"PendingCell";
+    UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:cellId];
+    if (!cell) {
+        cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:cellId];
+    }
+    
+    Ingredient *ing = self.pendingIngredients[indexPath.row];
+    cell.textLabel.text = ing.name;
+    
+    NSString *storage = @"冷藏";
+    if ([ing.storageType isEqualToString:@"frozen"]) storage = @"冷冻";
+    if ([ing.storageType isEqualToString:@"pantry"]) storage = @"常温";
+    
+    cell.detailTextLabel.text = [NSString stringWithFormat:@"%.1f %@ | %@", ing.quantity, ing.unit, storage];
+    
+    return cell;
+}
+
+- (BOOL)tableView:(UITableView *)tableView canEditRowAtIndexPath:(NSIndexPath *)indexPath {
+    return YES;
+}
+
+- (void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath {
+    if (editingStyle == UITableViewCellEditingStyleDelete) {
+        [self.pendingIngredients removeObjectAtIndex:indexPath.row];
+        [tableView deleteRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationAutomatic];
+    }
 }
 
 - (void)showError:(NSError *)error {

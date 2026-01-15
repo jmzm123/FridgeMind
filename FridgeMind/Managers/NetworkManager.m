@@ -196,12 +196,59 @@ static NSString * const kCurrentFamilyIdKey = @"kCurrentFamilyIdKey";
 }
 
 - (void)identifyIngredientsWithImageBase64:(NSString *)imageBase64 success:(SuccessBlock)success failure:(FailureBlock)failure {
-    // Backend expects full Data URI scheme
-    NSString *dataURI = [NSString stringWithFormat:@"data:image/jpeg;base64,%@", imageBase64];
-    NSDictionary *params = @{@"imageUrl": dataURI};
+    // Direct call to Aliyun Qwen-VL-Plus (Frontend Implementation)
+    NSString *apiKey = @"sk-ede5d99e539c47219913ce6cf2257f42";
+    NSString *url = @"https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions";
     
-    [_sessionManager POST:@"ai/identify-ingredients" parameters:params headers:nil progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
-        if (success) success(responseObject);
+    NSString *dataURI = [NSString stringWithFormat:@"data:image/jpeg;base64,%@", imageBase64];
+    
+    NSDictionary *body = @{
+        @"model": @"qwen-vl-plus",
+        @"messages": @[
+            @{
+                @"role": @"user",
+                @"content": @[
+                    @{@"type": @"image_url", @"image_url": @{@"url": dataURI}},
+                    @{@"type": @"text", @"text": @"请识别图中的食材。请只返回一个JSON数组，格式为：[{ \"name\": \"食材名称\", \"quantity\": 数量(数字), \"unit\": \"单位\", \"storageType\": \"chilled\" | \"frozen\" | \"pantry\" }]. 如果无法确定数量，默认为1。如果无法确定单位，默认为'个'或'份'。storageType请只返回 chilled(冷藏), frozen(冷冻), pantry(常温) 三者之一。请不要返回任何Markdown格式或额外文字，只返回纯JSON字符串。"}
+                ]
+            }
+        ]
+    };
+    
+    AFHTTPSessionManager *manager = [AFHTTPSessionManager manager];
+    manager.requestSerializer = [AFJSONRequestSerializer serializer];
+    manager.responseSerializer = [AFJSONResponseSerializer serializer];
+    manager.requestSerializer.timeoutInterval = 60;
+    
+    [manager.requestSerializer setValue:[NSString stringWithFormat:@"Bearer %@", apiKey] forHTTPHeaderField:@"Authorization"];
+    
+    [manager POST:url parameters:body headers:nil progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+        if (responseObject && responseObject[@"choices"]) {
+            NSArray *choices = responseObject[@"choices"];
+            if (choices.count > 0) {
+                NSDictionary *message = choices[0][@"message"];
+                NSString *content = message[@"content"];
+                
+                // Clean markdown
+                content = [content stringByReplacingOccurrencesOfString:@"```json" withString:@""];
+                content = [content stringByReplacingOccurrencesOfString:@"```" withString:@""];
+                content = [content stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
+                
+                NSData *jsonData = [content dataUsingEncoding:NSUTF8StringEncoding];
+                NSError *jsonError;
+                id jsonObject = [NSJSONSerialization JSONObjectWithData:jsonData options:0 error:&jsonError];
+                
+                if (jsonObject) {
+                    if (success) success(jsonObject);
+                } else {
+                     if (failure) failure(jsonError ?: [NSError errorWithDomain:@"com.fridgemind" code:500 userInfo:@{NSLocalizedDescriptionKey: @"JSON Parse Error"}]);
+                }
+            } else {
+                 if (failure) failure([NSError errorWithDomain:@"com.fridgemind" code:500 userInfo:@{NSLocalizedDescriptionKey: @"No choices in response"}]);
+            }
+        } else {
+            if (failure) failure([NSError errorWithDomain:@"com.fridgemind" code:500 userInfo:@{NSLocalizedDescriptionKey: @"Invalid response"}]);
+        }
     } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
         if (failure) failure(error);
     }];
