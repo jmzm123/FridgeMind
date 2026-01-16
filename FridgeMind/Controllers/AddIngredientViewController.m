@@ -195,7 +195,7 @@
     // Batch UI Elements
     if (!self.existingIngredient) {
         self.addButton = [UIButton buttonWithType:UIButtonTypeSystem];
-        [self.addButton setTitle:@"添加 / 暂存" forState:UIControlStateNormal];
+        [self.addButton setTitle:@"添加" forState:UIControlStateNormal];
         self.addButton.titleLabel.font = [UIFont boldSystemFontOfSize:18];
         [self.addButton addTarget:self action:@selector(addTapped) forControlEvents:UIControlEventTouchUpInside];
         
@@ -233,7 +233,7 @@
 }
 
 - (void)cameraTapped {
-    UIAlertController *actionSheet = [UIAlertController alertControllerWithTitle:@"选择图片来源" message:@"把食材平铺到平面或购物小票，可自动批量识别" preferredStyle:UIAlertControllerStyleActionSheet];
+    UIAlertController *actionSheet = [UIAlertController alertControllerWithTitle:@"选择图片来源" message:@"食材平铺到平面或购物小票，可自动批量识别" preferredStyle:UIAlertControllerStyleActionSheet];
     
     if ([UIImagePickerController isSourceTypeAvailable:UIImagePickerControllerSourceTypeCamera]) {
         [actionSheet addAction:[UIAlertAction actionWithTitle:@"相机" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
@@ -273,7 +273,7 @@
     NSString *base64 = [imageData base64EncodedStringWithOptions:0];
     
     // Show Loading
-    UIAlertController *loading = [UIAlertController alertControllerWithTitle:@"识别中..." message:@"AI正在分析食材或小票..." preferredStyle:UIAlertControllerStyleAlert];
+    UIAlertController *loading = [UIAlertController alertControllerWithTitle:@"识别中..." message:@"正在分析食材或小票..." preferredStyle:UIAlertControllerStyleAlert];
     [self presentViewController:loading animated:YES completion:nil];
     
     [[NetworkManager sharedManager] identifyIngredientsWithImageBase64:base64 success:^(id  _Nullable response) {
