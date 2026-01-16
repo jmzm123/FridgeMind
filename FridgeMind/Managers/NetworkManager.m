@@ -7,6 +7,7 @@ static NSString * const kCurrentFamilyIdKey = @"kCurrentFamilyIdKey";
 
 @interface NetworkManager ()
 @property (nonatomic, strong) AFHTTPSessionManager *sessionManager;
+- (NSString *)getQwenApiKey;
 @end
 
 @implementation NetworkManager
@@ -197,7 +198,14 @@ static NSString * const kCurrentFamilyIdKey = @"kCurrentFamilyIdKey";
 
 - (void)identifyIngredientsWithImageBase64:(NSString *)imageBase64 success:(SuccessBlock)success failure:(FailureBlock)failure {
     // Direct call to Aliyun Qwen-VL-Plus (Frontend Implementation)
-    NSString *apiKey = @"sk-ede5d99e539c47219913ce6cf2257f42";
+    NSString *apiKey = [self getQwenApiKey];
+    if (!apiKey) {
+        if (failure) {
+            failure([NSError errorWithDomain:@"com.fridgemind" code:401 userInfo:@{NSLocalizedDescriptionKey: @"Missing or invalid API Key in Keys.plist"}]);
+        }
+        return;
+    }
+    
     NSString *url = @"https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions";
     
     NSString *dataURI = [NSString stringWithFormat:@"data:image/jpeg;base64,%@", imageBase64];
@@ -315,6 +323,26 @@ static NSString * const kCurrentFamilyIdKey = @"kCurrentFamilyIdKey";
     } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
         if (failure) failure(error);
     }];
+}
+
+#pragma mark - Helper
+
+- (NSString *)getQwenApiKey {
+    NSString *path = [[NSBundle mainBundle] pathForResource:@"Keys" ofType:@"plist"];
+    if (!path) {
+        NSLog(@"[NetworkManager] Keys.plist not found in bundle. Please ensure Keys.plist is added to the project Resources.");
+        return nil;
+    }
+    
+    NSDictionary *dict = [NSDictionary dictionaryWithContentsOfFile:path];
+    NSString *apiKey = dict[@"QwenApiKey"];
+    
+    if (apiKey && apiKey.length > 0 && ![apiKey isEqualToString:@"YOUR_API_KEY_HERE"]) {
+        return apiKey;
+    }
+    
+    NSLog(@"[NetworkManager] Error: Valid QwenApiKey not found in Keys.plist.");
+    return nil;
 }
 
 @end

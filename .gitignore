@@ -1,0 +1,22 @@
+# Xcode
+.DS_Store
+*/.DS_Store
+*.swp
+*~.nib
+*.pbxuser
+*.mode1v3
+*.mode2v3
+*.perspectivev3
+xcuserdata
+*.xccheckout
+*.moved-aside
+DerivedData
+*.hmap
+*.ipa
+*.xcuserstate
+
+# CocoaPods
+Pods/
+
+# API Keys
+FridgeMind/Resources/Keys.plist
