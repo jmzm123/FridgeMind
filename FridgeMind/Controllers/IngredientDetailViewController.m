@@ -4,10 +4,12 @@
 #import "DBManager.h"
 #import <SVProgressHUD/SVProgressHUD.h>
 #import "NetworkManager.h"
+#import <SDWebImage/SDWebImage.h>
 
 @interface IngredientDetailViewController ()
 
 // UI 控件声明
+@property (nonatomic, strong) UIImageView *imageView;   // 食材图片
 @property (nonatomic, strong) UILabel *nameLabel;       // 食材名称标签
 @property (nonatomic, strong) UILabel *quantityLabel;   // 数量标签
 @property (nonatomic, strong) UILabel *expirationLabel; // 过期时间标签
@@ -40,12 +42,24 @@
     // 设置导航栏右侧的“编辑”按钮
     self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemEdit target:self action:@selector(editTapped)];
     
+    // 创建图片控件
+    self.imageView = [[UIImageView alloc] init];
+    self.imageView.contentMode = UIViewContentModeScaleAspectFit;
+    self.imageView.layer.cornerRadius = 10;
+    self.imageView.clipsToBounds = YES;
+    [self.view addSubview:self.imageView];
+    
     // 创建各个标签控件
     self.nameLabel = [self createLabelWithFont:[UIFont boldSystemFontOfSize:24]]; // 名称用大号粗体
+    self.nameLabel.textAlignment = NSTextAlignmentCenter; // 居中显示
     self.quantityLabel = [self createLabelWithFont:[UIFont systemFontOfSize:18]];
+    self.quantityLabel.textAlignment = NSTextAlignmentCenter;
     self.storageLabel = [self createLabelWithFont:[UIFont systemFontOfSize:16]];
+    self.storageLabel.textAlignment = NSTextAlignmentCenter;
     self.expirationLabel = [self createLabelWithFont:[UIFont systemFontOfSize:16]];
+    self.expirationLabel.textAlignment = NSTextAlignmentCenter;
     self.statusLabel = [self createLabelWithFont:[UIFont boldSystemFontOfSize:18]];
+    self.statusLabel.textAlignment = NSTextAlignmentCenter;
     self.statusLabel.textColor = [UIColor darkGrayColor];
     
     // 将控件添加到视图中
@@ -56,8 +70,14 @@
     [self.view addSubview:self.statusLabel];
     
     // 使用 Masonry 进行自动布局
-    [self.nameLabel mas_makeConstraints:^(MASConstraintMaker *make) {
+    [self.imageView mas_makeConstraints:^(MASConstraintMaker *make) {
         make.top.equalTo(self.view.mas_safeAreaLayoutGuideTop).offset(20);
+        make.centerX.equalTo(self.view);
+        make.width.height.mas_equalTo(120); // 详情页显示大图
+    }];
+    
+    [self.nameLabel mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.top.equalTo(self.imageView.mas_bottom).offset(20);
         make.left.equalTo(self.view).offset(20);
         make.right.equalTo(self.view).offset(-20);
     }];
@@ -109,6 +129,19 @@
 - (void)updateData {
     // 填充基本信息
     self.nameLabel.text = self.ingredient.name;
+    
+    // 加载图片
+    NSString *imageURL = self.ingredient.imageUrl;
+    if (!imageURL || imageURL.length == 0) {
+        imageURL = [Ingredient imageURLForName:self.ingredient.name];
+    }
+    
+    if (imageURL && imageURL.length > 0) {
+        [self.imageView sd_setImageWithURL:[NSURL URLWithString:imageURL] placeholderImage:nil];
+    } else {
+        self.imageView.image = nil;
+    }
+    
     self.quantityLabel.text = [NSString stringWithFormat:@"数量: %.1f %@", self.ingredient.quantity, self.ingredient.unit ?: @""];
     self.storageLabel.text = [NSString stringWithFormat:@"存放位置: %@", [self storageText:self.ingredient.storageType]];
     

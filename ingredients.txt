@@ -1,0 +1,50 @@
+Milk,牛奶
+Cheese,奶酪
+Yogurt,酸奶
+Butter,黄油
+Eggs,鸡蛋
+Apple,苹果
+Grapes,葡萄
+Strawberry,草莓
+Blueberry,蓝莓
+Lemon,柠檬
+Watermelon,西瓜
+Peach,桃子
+Cherry,樱桃
+Pear,梨
+Lettuce,生菜
+Spinach,菠菜
+Cabbage,卷心菜
+Broccoli,西兰花
+Cauliflower,花菜
+Carrot,胡萝卜
+Cucumber,黄瓜
+Tomato,番茄
+Bell Pepper,甜椒
+Mushroom,蘑菇
+Asparagus,芦笋
+Celery,芹菜
+Zucchini,西葫芦
+Corn,玉米
+Eggplant,茄子
+Chili Pepper,辣椒
+Chicken Breast,鸡胸肉
+Steak,牛排
+Pork,猪肉
+Bacon,培根
+Sausage,香肠
+Salmon,三文鱼
+Shrimp,虾
+Tofu,豆腐
+Cola,可乐
+Juice,果汁
+Beer,啤酒
+Water,矿泉水
+Ketchup,番茄酱
+Mayonnaise,蛋黄酱
+Jam,果酱
+Miso,味噌
+Chocolate,巧克力
+Ice Cream,冰淇淋
+Cake,蛋糕
+Avocado,牛油果

@@ -146,7 +146,7 @@
     dispatch_sync(self.dbQueue, ^{
         // Spec says: "There exists any record where sync_status != synced" for triggers.
         // For UI display, we usually want non-deleted items.
-        const char *sql = "SELECT * FROM IngredientLocal WHERE deleted = 0";
+        const char *sql = "SELECT * FROM IngredientLocal WHERE deleted = 0 ORDER BY created_at DESC";
         sqlite3_stmt *statement;
         
         if (sqlite3_prepare_v2(self.db, sql, -1, &statement, NULL) == SQLITE_OK) {

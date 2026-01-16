@@ -28,6 +28,10 @@
     UIWindowScene *windowScene = (UIWindowScene *)scene;
     self.window = [[UIWindow alloc] initWithWindowScene:windowScene];
     
+    // 直接进入主页，跳过登录
+    [self showMainInterface];
+    
+    /*
     if ([[NetworkManager sharedManager] isLoggedIn]) {
         if ([NetworkManager sharedManager].currentFamilyId) {
             [self showMainInterface];
@@ -41,6 +45,7 @@
         LoginViewController *loginVC = [[LoginViewController alloc] init];
         self.window.rootViewController = loginVC;
     }
+    */
     
     [self.window makeKeyAndVisible];
 }

@@ -17,6 +17,10 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, copy) NSString *syncStatus; // pending, synced, failed
 @property (nonatomic, strong) NSDate *updatedAt;
 @property (nonatomic, assign) BOOL deleted;
+
+/// 根据食材名称获取预设图标URL (Tencent COS)
++ (nullable NSString *)imageURLForName:(NSString *)name;
+
 @end
 
 NS_ASSUME_NONNULL_END
